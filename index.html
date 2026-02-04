@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 4 FC | Club Analytics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#0ea5e9',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-50">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass-card border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 sports-gradient rounded-lg flex items-center justify-center shadow-lg">
+                        <span class="text-white font-bold text-xl">P4</span>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">PHASE 4 <span class="text-primary">FC</span></span>
+                </div>
+
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link font-medium">Dashboard</a>
+                    <a href="stats.html" class="nav-link text-slate-400">Player Stats</a>
+                    <a href="#matches" class="nav-link text-slate-400">Match History</a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <a href="admin.html" class="btn-secondary text-sm px-4 py-2">Club Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero / Latest Match -->
+        <section id="hero" class="mb-12">
+            <div id="latest-match-container">
+                <!-- Will be populated by JS -->
+                <div class="animate-pulse bg-slate-800 rounded-2xl h-64 w-full"></div>
+            </div>
+        </section>
+
+        <!-- Stats Overview Grid -->
+        <section id="stats-overview" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="glass-card p-6 rounded-2xl border-l-4 border-primary">
+                <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Top Scorer</h3>
+                <div id="top-scorer" class="mt-2 flex items-end gap-2">
+                    <span class="text-3xl font-bold">--</span>
+                    <span class="text-primary text-sm mb-1 pb-1">GOALS</span>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl border-l-4 border-secondary">
+                <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Most Assists</h3>
+                <div id="top-assister" class="mt-2 flex items-end gap-2">
+                    <span class="text-3xl font-bold">--</span>
+                    <span class="text-secondary text-sm mb-1 pb-1">ASSISTS</span>
+                </div>
+            </div>
+            <div class="glass-card p-6 rounded-2xl border-l-4 border-accent">
+                <h3 class="text-slate-400 text-sm font-semibold uppercase tracking-wider">Attendance King</h3>
+                <div id="top-attendance" class="mt-2 flex items-end gap-2">
+                    <span class="text-3xl font-bold">--</span>
+                    <span class="text-accent text-sm mb-1 pb-1">SESSIONS</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left: Match History -->
+            <div class="lg:col-span-2">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Recent Sessions</h2>
+                    <button class="text-primary text-sm font-semibold hover:underline">View All</button>
+                </div>
+                <div id="match-list" class="space-y-4">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+
+            <!-- Right: Top Contributors -->
+            <div>
+                <h2 class="text-2xl font-bold mb-6">Season Leaders</h2>
+                <div id="leaderboard" class="glass-card rounded-2xl overflow-hidden">
+                    <!-- Will be populated by JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="js/analytics.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

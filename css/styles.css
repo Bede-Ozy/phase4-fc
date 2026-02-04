@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap');
+
+:root {
+    --primary: #10b981;
+    /* Emerald 500 */
+    --primary-dark: #059669;
+    /* Emerald 600 */
+    --secondary: #0ea5e9;
+    /* Sky 500 */
+    --accent: #f59e0b;
+    /* Amber 500 */
+    --bg-dark: #0f172a;
+    /* Slate 900 */
+    --card-bg: #1e293b;
+    /* Slate 800 */
+    --text-main: #f8fafc;
+    /* Slate 50 */
+    --text-muted: #94a3b8;
+    /* Slate 400 */
+}
+
+body {
+    font-family: 'Outfit', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    min-height: 100vh;
+}
+
+.glass-card {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sports-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Custom Scoreboard Style */
+.scoreboard {
+    background: #000;
+    border: 3px solid #334155;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+/* Hover Effects */
+.nav-link {
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    @apply bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 shadow-lg shadow-emerald-500/20 active:scale-95;
+}
+
+.btn-secondary {
+    @apply bg-slate-700 hover:bg-slate-600 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 active:scale-95;
+}

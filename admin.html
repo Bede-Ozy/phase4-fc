@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Admin | Phase 4 FC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#0ea5e9',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-50">
+
+    <!-- Admin Navigation -->
+    <nav class="sticky top-0 z-50 glass-card border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <a href="index.html"
+                        class="w-10 h-10 sports-gradient rounded-lg flex items-center justify-center shadow-lg">
+                        <span class="text-white font-bold text-xl">P4</span>
+                    </a>
+                    <span class="text-xl font-bold tracking-tight">CLUB <span class="text-primary">ADMIN</span></span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button id="export-csv" class="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
+                            </path>
+                        </svg>
+                        Export CSV
+                    </button>
+                    <a href="index.html" class="nav-link text-sm">Exit Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+            <!-- Sidebar: Admin Menu -->
+            <div class="space-y-4">
+                <button onclick="switchTab('sessions')"
+                    class="w-full text-left p-4 rounded-xl glass-card border-l-4 border-primary hover:bg-slate-800 transition-all">
+                    <span class="block font-bold">Sessions</span>
+                    <span class="text-xs text-slate-400">Match & Training Data</span>
+                </button>
+                <button onclick="switchTab('players')"
+                    class="w-full text-left p-4 rounded-xl glass-card border-l-4 border-slate-700 hover:border-secondary hover:bg-slate-800 transition-all">
+                    <span class="block font-bold text-slate-400">Player List</span>
+                    <span class="text-xs text-slate-400">Manage Squad</span>
+                </button>
+                <button onclick="switchTab('analytics')"
+                    class="w-full text-left p-4 rounded-xl glass-card border-l-4 border-slate-700 hover:border-accent hover:bg-slate-800 transition-all">
+                    <span class="block font-bold text-slate-400">Deep Analytics</span>
+                    <span class="text-xs text-slate-400">Advanced Metrics</span>
+                </button>
+            </div>
+
+            <!-- Main Admin View -->
+            <div class="lg:col-span-3">
+                <div id="admin-content" class="space-y-6">
+                    <!-- Session Entry Header -->
+                    <div class="flex justify-between items-center">
+                        <h2 id="tab-title" class="text-3xl font-extrabold">Session Management</h2>
+                        <button onclick="openNewSessionModal()" class="btn-primary flex items-center gap-2">
+                            <span class="text-xl">+</span> Add New Session
+                        </button>
+                    </div>
+
+                    <div id="session-list" class="grid grid-cols-1 gap-4">
+                        <!-- sessions will be listed here -->
+                        <div
+                            class="glass-card p-12 rounded-2xl flex flex-col items-center justify-center text-center opacity-50">
+                            <div class="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                            </div>
+                            <p class="text-slate-400 italic">No sessions recorded yet. Start by adding your first match
+                                or training.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals (Hidden by default) -->
+    <div id="modal-overlay"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <!-- New Session Modal Content will be injected here -->
+    </div>
+
+    <script src="js/analytics.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
