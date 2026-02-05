@@ -7,6 +7,8 @@ const State = {
     currentTab: 'sessions', // Default tab
     playerSearchQuery: '',
     playerFilterPos: 'all',
+    matchSearchQuery: '',
+    matchFilterType: 'all',
     init() {
         this.load();
         this.render();
@@ -80,6 +82,8 @@ const State = {
             this.renderPublicDashboard();
         } else if (path.includes('stats.html')) {
             this.renderStatsPage();
+        } else if (path.includes('matches.html')) {
+            this.renderMatchHistoryPage();
         } else if (path.includes('admin.html')) {
             this.renderAdminDashboard();
         }
@@ -98,6 +102,89 @@ const State = {
         this.renderStatsOverview();
         this.renderMatchList();
         this.renderLeaderboard();
+    },
+
+    renderMatchHistoryPage() {
+        const container = document.getElementById('full-match-list');
+        if (!container) return;
+
+        const searchQuery = (this.matchSearchQuery || '').toLowerCase();
+        const filterType = (this.matchFilterType || 'all').toLowerCase();
+
+        let filtered = this.sessions.filter(s => {
+            const matchesSearch = s.teams.some(t => t.name.toLowerCase().includes(searchQuery)) ||
+                s.date.includes(searchQuery) ||
+                s.type.toLowerCase().includes(searchQuery);
+            const matchesType = filterType === 'all' || s.type.toLowerCase() === filterType;
+            return matchesSearch && matchesType;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full py-20 text-center glass-card rounded-3xl">
+                    <div class="text-4xl mb-4">🏟️</div>
+                    <p class="text-slate-500 italic">No matches found matching your criteria.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.slice().reverse().map(s => `
+            <div class="glass-card overflow-hidden rounded-3xl border border-slate-700 hover:border-primary/30 transition-all group">
+                <div class="p-6 md:p-8">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div class="flex-1 flex flex-col md:flex-row items-center gap-6">
+                            <div class="text-center bg-slate-800 rounded-2xl p-4 min-w-[100px] border border-slate-700">
+                                <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { month: 'short' })}</div>
+                                <div class="text-3xl font-black">${new Date(s.date).getDate()}</div>
+                                <div class="text-[10px] text-slate-500 font-bold uppercase mt-1">${new Date(s.date).getFullYear()}</div>
+                            </div>
+                            
+                            <div class="flex flex-col md:flex-row items-center gap-4 md:gap-8">
+                                <div class="flex items-center gap-3">
+                                    ${this.getTeamFlag(s.teams[0].name)}
+                                    <h4 class="text-xl font-bold">${s.teams[0].name}</h4>
+                                </div>
+                                <div class="px-6 py-2 bg-slate-900 rounded-2xl border border-slate-700 flex items-center gap-4">
+                                    <span class="text-3xl font-black text-primary">${s.teams[0].score}</span>
+                                    <span class="text-slate-600 font-bold text-sm">VS</span>
+                                    <span class="text-3xl font-black text-primary">${s.teams[1].score}</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <h4 class="text-xl font-bold text-right">${s.teams[1].name}</h4>
+                                    ${this.getTeamFlag(s.teams[1].name)}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col items-center md:items-end gap-3">
+                            <span class="px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest border border-primary/20">${s.type}</span>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                                Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scorers & Lineups Section -->
+                    <div class="mt-8 pt-6 border-t border-slate-700/50">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[0].name} Lineup & Contributions</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    ${this.renderExpandedPlayers(s.teams[0])}
+                                </div>
+                            </div>
+                            <div class="md:text-right">
+                                <h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[1].name} Lineup & Contributions</h5>
+                                <div class="flex flex-wrap gap-2 md:justify-end">
+                                    ${this.renderExpandedPlayers(s.teams[1])}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
     },
 
     renderLatestMatch() {

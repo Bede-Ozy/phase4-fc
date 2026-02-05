@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Stats | Phase 4 FC</title>
+    <title>Match History | Phase 4 FC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/styles.css">
     <script>
@@ -40,8 +40,8 @@
 
                 <div class="hidden md:flex space-x-8">
                     <a href="index.html" class="nav-link text-slate-400">Dashboard</a>
-                    <a href="stats.html" class="nav-link font-medium border-b-2 border-primary">Player Stats</a>
-                    <a href="matches.html" class="nav-link text-slate-400">Match History</a>
+                    <a href="stats.html" class="nav-link text-slate-400">Player Stats</a>
+                    <a href="matches.html" class="nav-link font-medium border-b-2 border-primary">Match History</a>
                 </div>
 
                 <div class="flex items-center gap-4">
@@ -52,20 +52,20 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Squad Analytics Section -->
-        <section id="stats" class="animate-in fade-in duration-500">
+        <!-- Match History Section -->
+        <section id="match-history" class="animate-in fade-in duration-500">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
                 <div>
-                    <h2 class="text-3xl font-black uppercase tracking-tight">Squad <span
-                            class="text-primary">Analytics</span></h2>
-                    <p class="text-slate-500 text-sm font-medium mt-1">Deep dive into individual player performance
-                        metrics</p>
+                    <h2 class="text-3xl font-black uppercase tracking-tight">Match <span
+                            class="text-primary">History</span></h2>
+                    <p class="text-slate-500 text-sm font-medium mt-1">Timeline of all recorded club sessions and
+                        results</p>
                 </div>
 
                 <div class="flex flex-wrap gap-4">
                     <div class="relative">
-                        <input type="text" placeholder="Search player..."
-                            oninput="State.playerSearchQuery = this.value; State.renderDetailedStats()"
+                        <input type="text" placeholder="Search matches..."
+                            oninput="State.matchSearchQuery = this.value; State.renderMatchHistoryPage()"
                             class="bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-2 pl-10 text-sm font-bold text-white outline-none focus:border-primary transition-all w-full md:w-64">
                         <svg class="w-4 h-4 text-slate-500 absolute left-4 top-3" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -74,21 +74,20 @@
                         </svg>
                     </div>
 
-                    <select onchange="State.playerFilterPos = this.value; State.renderDetailedStats()"
+                    <select onchange="State.matchFilterType = this.value; State.renderMatchHistoryPage()"
                         class="bg-slate-800 border-2 border-slate-700 rounded-xl px-4 py-2 text-sm font-bold text-white outline-none focus:border-primary transition-all">
-                        <option value="all">All Positions</option>
-                        <option value="forward">Forwards</option>
-                        <option value="midfielder">Midfielders</option>
-                        <option value="defender">Defenders</option>
-                        <option value="goalkeeper">Goalkeepers</option>
+                        <option value="all">All Types</option>
+                        <option value="match">Matches Only</option>
+                        <option value="training">Training Sessions</option>
                     </select>
                 </div>
             </div>
 
-            <div id="detailed-stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div id="full-match-list" class="space-y-6">
                 <!-- Data will be injected here -->
-                <div class="animate-pulse bg-slate-800 rounded-2xl h-48 w-full"></div>
-                <div class="animate-pulse bg-slate-800 rounded-2xl h-48 w-full"></div>
+                <div class="animate-pulse bg-slate-800 rounded-2xl h-32 w-full"></div>
+                <div class="animate-pulse bg-slate-800 rounded-2xl h-32 w-full"></div>
+                <div class="animate-pulse bg-slate-800 rounded-2xl h-32 w-full"></div>
             </div>
         </section>
     </main>
