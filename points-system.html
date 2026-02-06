@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Points System | Phase 4 FC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#0ea5e9',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-50">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass-card border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <a href="index.html"
+                        class="w-10 h-10 sports-gradient rounded-lg flex items-center justify-center shadow-lg">
+                        <span class="text-white font-bold text-xl">P4</span>
+                    </a>
+                    <span class="text-xl font-bold tracking-tight">PHASE 4 <span class="text-primary">FC</span></span>
+                </div>
+
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-slate-400">Dashboard</a>
+                    <a href="stats.html" class="nav-link text-slate-400">Player Stats</a>
+                    <a href="matches.html" class="nav-link text-slate-400">Match History</a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <a href="index.html"
+                        class="px-4 py-2 rounded-full border border-slate-700 text-sm font-bold hover:bg-slate-800 transition-colors">Back
+                        to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tight mb-4">How We <span
+                    class="text-primary">Calculate Points</span></h1>
+            <p class="text-slate-400 text-lg max-w-2xl mx-auto">Transparency in performance tracking. We weight goals
+                and assists differently based on the player's position to create a fair playing field.</p>
+        </div>
+
+        <!-- Core Basics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center border-t-4 border-primary">
+                <div class="text-3xl mb-2">🏟️</div>
+                <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Appearance</h3>
+                <div class="text-2xl font-black text-primary">+1 <span
+                        class="text-xs text-slate-500 font-bold">pt</span></div>
+                <p class="text-xs text-slate-500 mt-2">Awarded for playing in any match or training session.</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center border-t-4 border-yellow-500">
+                <div class="text-3xl mb-2">🟨</div>
+                <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Yellow Card</h3>
+                <div class="text-2xl font-black text-yellow-500">-2 <span
+                        class="text-xs text-slate-500 font-bold">pts</span></div>
+                <p class="text-xs text-slate-500 mt-2">Deducted for a booking during a session.</p>
+            </div>
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center border-t-4 border-red-600">
+                <div class="text-3xl mb-2">🟥</div>
+                <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Red Card</h3>
+                <div class="text-2xl font-black text-red-600">-4 <span
+                        class="text-xs text-slate-500 font-bold">pts</span></div>
+                <p class="text-xs text-slate-500 mt-2">Major deduction for being sent off.</p>
+            </div>
+        </div>
+
+        <!-- Detailed Positional Breakdown -->
+        <div class="space-y-8">
+            <h2 class="text-2xl font-black uppercase tracking-tight text-white mb-6 border-l-4 border-primary pl-4">
+                Positional Validations</h2>
+
+            <!-- Defenders -->
+            <div
+                class="glass-card p-8 rounded-[2rem] border border-slate-700 relative overflow-hidden group hover:border-blue-500/50 transition-all">
+                <div
+                    class="absolute -right-20 -top-20 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-all">
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8 relative z-10">
+                    <div class="md:w-1/3">
+                        <div
+                            class="inline-block px-3 py-1 rounded bg-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-widest mb-2">
+                            Defenders & GKs</div>
+                        <h3 class="text-2xl font-black text-white mb-2">The Fortress</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Defenders are rewarded heavily for
+                            contributing to the attack, as these actions are rarer and high-impact.</p>
+                    </div>
+                    <div class="md:w-2/3 grid grid-cols-2 gap-4">
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <div class="text-xs font-bold text-slate-500 uppercase">Goal Scored</div>
+                            <div class="text-3xl font-black text-white">+3 <span
+                                    class="text-sm text-slate-500">pts</span></div>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <div class="text-xs font-bold text-slate-500 uppercase">Assist</div>
+                            <div class="text-3xl font-black text-white">+3 <span
+                                    class="text-sm text-slate-500">pts</span></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Example -->
+                <div class="mt-6 p-4 bg-slate-900/80 rounded-xl border border-dashed border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <span
+                            class="text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1">Example</span>
+                        <p class="text-sm text-slate-300">
+                            <span class="font-bold text-white">Dums (Defender)</span> plays a match, scores 1 goal,
+                            and gets 1 assist.<br>
+                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 3 (Goal) + 3 (Assist) = <span
+                                    class="text-white font-bold">7 Total Points</span></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Midfielders -->
+            <div
+                class="glass-card p-8 rounded-[2rem] border border-slate-700 relative overflow-hidden group hover:border-emerald-500/50 transition-all">
+                <div
+                    class="absolute -right-20 -top-20 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all">
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8 relative z-10">
+                    <div class="md:w-1/3">
+                        <div
+                            class="inline-block px-3 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-widest mb-2">
+                            Midfielders</div>
+                        <h3 class="text-2xl font-black text-white mb-2">The Engine</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Balanced scoring for the playmakers who
+                            control the flow of the game.</p>
+                    </div>
+                    <div class="md:w-2/3 grid grid-cols-2 gap-4">
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <div class="text-xs font-bold text-slate-500 uppercase">Goal Scored</div>
+                            <div class="text-3xl font-black text-white">+2 <span
+                                    class="text-sm text-slate-500">pts</span></div>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <div class="text-xs font-bold text-slate-500 uppercase">Assist</div>
+                            <div class="text-3xl font-black text-white">+2 <span
+                                    class="text-sm text-slate-500">pts</span></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Example -->
+                <div class="mt-6 p-4 bg-slate-900/80 rounded-xl border border-dashed border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <span
+                            class="text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1">Example</span>
+                        <p class="text-sm text-slate-300">
+                            <span class="font-bold text-white">Biggy (Midfielder)</span> has an amazing game with 1
+                            goal and 2 assists.<br>
+                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 2 (Goal) + 4 (2 Assists) =
+                                <span class="text-white font-bold">7 Total Points</span></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forwards -->
+            <div
+                class="glass-card p-8 rounded-[2rem] border border-slate-700 relative overflow-hidden group hover:border-orange-500/50 transition-all">
+                <div
+                    class="absolute -right-20 -top-20 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl group-hover:bg-orange-500/10 transition-all">
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-8 relative z-10">
+                    <div class="md:w-1/3">
+                        <div
+                            class="inline-block px-3 py-1 rounded bg-orange-500/20 text-orange-400 text-xs font-black uppercase tracking-widest mb-2">
+                            Forwards</div>
+                        <h3 class="text-2xl font-black text-white mb-2">The Finishers</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Expected to score. Volume is key for forwards
+                            to rack up big points.</p>
+                    </div>
+                    <div class="md:w-2/3 grid grid-cols-2 gap-4">
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <div class="text-xs font-bold text-slate-500 uppercase">Goal Scored</div>
+                            <div class="text-3xl font-black text-white">+2 <span
+                                    class="text-sm text-slate-500">pts</span></div>
+                        </div>
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
+                            <div class="text-xs font-bold text-slate-500 uppercase">Assist</div>
+                            <div class="text-3xl font-black text-white">+1 <span
+                                    class="text-sm text-slate-500">pt</span></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Example -->
+                <div class="mt-6 p-4 bg-slate-900/80 rounded-xl border border-dashed border-slate-700">
+                    <div class="flex items-start gap-3">
+                        <span
+                            class="text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1">Example</span>
+                        <p class="text-sm text-slate-300">
+                            <span class="font-bold text-white">Drogba (Forward)</span> scores 2 goals in a match.<br>
+                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 4 (2 Goals) = <span
+                                    class="text-white font-bold">5 Total Points</span></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-16 text-center">
+            <a href="index.html" class="btn-primary px-8 py-3 rounded-xl shadow-lg shadow-primary/20">Back to
+                Dashboard</a>
+        </div>
+    </main>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>

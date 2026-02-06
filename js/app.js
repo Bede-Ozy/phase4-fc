@@ -419,7 +419,27 @@ const State = {
                     </select>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="State.currentLeaderSort = 'totalPoints'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'totalPoints' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'} transition-all">Points</button>
+                    <div class="flex-1 relative group z-10">
+                        <button onclick="State.currentLeaderSort = 'totalPoints'; State.renderLeaderboard()" class="w-full py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'totalPoints' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'} transition-all flex items-center justify-center gap-1.5 cursor-help">
+                            Points
+                            <span class="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 group-hover:border-primary group-hover:text-primary text-slate-400 flex items-center justify-center text-[8px] transition-colors shadow-sm">?</span>
+                        </button>
+                        
+                        <!-- Tooltip Modal -->
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 bg-slate-900 border border-slate-600 p-4 rounded-xl shadow-2xl z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform scale-95 group-hover:scale-100 origin-bottom">
+                            <h4 class="text-xs font-bold text-primary mb-1 uppercase">Point System</h4>
+                            <div class="text-[10px] text-slate-300 leading-relaxed mb-3 font-medium">
+                                Scores based on weighted goals, assists, and apps.
+                            </div>
+                            <a href="points-system.html" class="block text-center bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 text-[9px] font-bold py-1.5 rounded-lg transition-colors">
+                                View Calculation
+                            </a>
+                            <!-- Arrow -->
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-slate-600"></div>
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-[2px] border-[6px] border-transparent border-t-slate-900"></div>
+                        </div>
+                    </div>
+
                     <button onclick="State.currentLeaderSort = 'goals'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'goals' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'} transition-all">Goals</button>
                     <button onclick="State.currentLeaderSort = 'assists'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'assists' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'} transition-all">Assists</button>
                 </div>
@@ -701,8 +721,14 @@ function openNewSessionModal() {
 
 function renderSessionModal() {
     const overlay = document.getElementById('modal-overlay');
+
+    // Preserve scroll position and avoid animation on re-renders
+    const existingContent = document.getElementById('session-modal-content');
+    const scrollPos = existingContent ? existingContent.scrollTop : 0;
+    const isUpdate = !!existingContent;
+
     overlay.innerHTML = `
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-[2rem] p-6 md:p-10 shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div id="session-modal-content" class="bg-slate-900 border border-slate-700 w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-[2rem] p-6 md:p-10 shadow-2xl ${isUpdate ? '' : 'animate-in fade-in zoom-in duration-300'}">
             <div class="flex justify-between items-center mb-10">
                 <div>
                     <h2 class="text-3xl font-black uppercase tracking-tight text-white">Entry <span class="text-primary">Console</span></h2>
@@ -745,6 +771,12 @@ function renderSessionModal() {
             </div>
         </div>
     `;
+
+    // Restore scroll position
+    const newContent = document.getElementById('session-modal-content');
+    if (newContent && scrollPos > 0) {
+        newContent.scrollTop = scrollPos;
+    }
 }
 
 function renderTeamDraft(teamIdx) {
