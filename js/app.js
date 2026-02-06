@@ -269,9 +269,17 @@ const State = {
         const isBlue = team.name.toLowerCase().includes('blue');
         const isOrange = team.name.toLowerCase().includes('orange');
 
-        return team.players.map(p => {
+        // Sort: Starters first, then Subs
+        const sortedPlayers = [...team.players].sort((a, b) => {
+            const roleA = a.role === 'sub' ? 1 : 0;
+            const roleB = b.role === 'sub' ? 1 : 0;
+            return roleA - roleB;
+        });
+
+        return sortedPlayers.map(p => {
             let highlights = '';
             const hasContribution = p.goals > 0 || p.assists > 0 || p.yellow > 0 || p.red > 0;
+            const isSub = p.role === 'sub';
 
             if (hasContribution) {
                 if (isBlue) {
@@ -283,8 +291,9 @@ const State = {
 
             return `
                 <div class="flex items-center gap-2 ${team.name.toLowerCase().includes('blue') ? '' : 'flex-row-reverse'}">
-                    <div class="px-2 py-1 rounded text-[10px] font-bold uppercase transition-all flex items-center gap-1 ${highlights || 'text-slate-500'}">
+                    <div class="px-2 py-1 rounded text-[10px] font-bold uppercase transition-all flex items-center gap-1 ${highlights || 'text-slate-500'} ${isSub ? 'opacity-75' : ''}">
                         ${p.name}
+                        ${isSub ? '<span class="text-xs" title="Substitute">🔄</span>' : ''}
                         ${p.goals > 0 ? `<span class="ml-1 opacity-80" title="Goals">⚽${p.goals}</span>` : ''}
                         ${p.assists > 0 ? `<span class="ml-1 opacity-80" title="Assists">👟${p.assists}</span>` : ''}
                         ${p.ownGoals > 0 ? `<span class="ml-1 text-red-400" title="Own Goal">⚠️OG</span>` : ''}
@@ -377,15 +386,35 @@ const State = {
                     </div>
                 </div>
                 <div class="hidden sm:flex flex-col items-end">
-                    <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 opacity-50">Scorers</div>
-                    <div class="flex -space-x-2">
-                        ${s.teams.flatMap(t => t.players).filter(p => p.goals > 0).map(p => `
-                            <div class="w-8 h-8 rounded-full bg-primary/20 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-primary relative group" title="${p.name} (${p.goals} goals)">
+                    <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 opacity-50">Starters</div>
+                    <div class="flex -space-x-2 mb-2">
+                        ${s.teams.flatMap(t => t.players).filter(p => !p.role || p.role === 'starter').filter(p => p.goals > 0).map(p => `
+                            <div class="w-8 h-8 rounded-full bg-primary/20 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-primary relative group cursor-help">
                                 ${p.name.split(' ').map(n => n[0]).join('')}
                                 ${p.goals > 1 ? `<span class="absolute -top-1 -right-1 bg-primary text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-slate-900">${p.goals}</span>` : ''}
+                                <span class="absolute top-10 right-0 bg-slate-900 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">${p.name} (${p.goals})</span>
                             </div>
-                        `).join('') || '<div class="text-[10px] text-slate-700 italic">No score</div>'}
+                        `).join('') || '<div class="text-[9px] text-slate-700 italic">No starter goals</div>'}
                     </div>
+
+                    ${s.teams.flatMap(t => t.players).some(p => p.role === 'sub' && p.goals > 0) ? `
+                        <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 opacity-50 mt-1">Subs</div>
+                        <div class="flex -space-x-2">
+                            ${s.teams.flatMap(t => t.players).filter(p => p.role === 'sub' && p.goals > 0).map(p => `
+                                <div class="w-8 h-8 rounded-full bg-secondary/20 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-secondary relative group cursor-help">
+                                    <span class="absolute -bottom-1 -right-1 text-[8px]">🔄</span>
+                                    ${p.name.split(' ').map(n => n[0]).join('')}
+                                    ${p.goals > 1 ? `<span class="absolute -top-1 -right-1 bg-secondary text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-slate-900">${p.goals}</span>` : ''}
+                                    <span class="absolute top-10 right-0 bg-slate-900 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">${p.name} (Sub) - ${p.goals} Goals</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+                <!-- Expansion Detail View (Hidden by default, could be toggled if we added logic) 
+                     For now implementing the requested visual separation in the summary card 
+                     and ensuring modifying the full view if it exists. -->
+
                 </div>
             </div>
         `).join('');
@@ -807,6 +836,11 @@ function renderTeamDraft(teamIdx) {
                                     <div class="font-bold text-xs text-slate-100 truncate">${p.name}</div>
                                     <div class="text-[8px] text-slate-500 font-bold uppercase truncate tracking-tighter">${p.position}</div>
                                 </div>
+                                ${activeP ? `
+                                    <button onclick="togglePlayerRole(${teamIdx}, '${p.name}')" class="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border transition-all ${activeP.role === 'sub' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}">
+                                        ${activeP.role === 'sub' ? 'SUB 🔄' : 'START ⭐'}
+                                    </button>
+                                ` : ''}
                             </div>
                             
                             <!-- Stat Entry Controls -->
@@ -870,6 +904,14 @@ function togglePlayerInDraft(teamIdx, playerName) {
 
     recalculateScore();
     renderSessionModal();
+}
+
+function togglePlayerRole(teamIdx, playerName) {
+    const player = currentDraft.teams[teamIdx].players.find(p => p.name === playerName);
+    if (player) {
+        player.role = player.role === 'starter' ? 'sub' : 'starter';
+        renderSessionModal();
+    }
 }
 
 function updateStat(teamIdx, playerName, stat, delta) {

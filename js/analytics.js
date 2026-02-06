@@ -38,8 +38,15 @@ const Analytics = {
                         stats[name].ownGoals += playerData.ownGoals || 0;
                         stats[name].appearances += 1;
 
-                        // Points Calculation
-                        let sessionPoints = 1; // Starter/Selected bonus
+                        let sessionPoints = 0;
+
+                        // Appearance Points (Starter vs Sub)
+                        const role = session.teams.flatMap(t => t.players).find(p => p.name === name)?.role || 'starter';
+                        if (role === 'sub') {
+                            sessionPoints += 0.5;
+                        } else {
+                            sessionPoints += 1.0;
+                        }
 
                         const pos = (stats[name].position || '').toLowerCase();
                         const goals = playerData.goals || 0;
@@ -48,7 +55,10 @@ const Analytics = {
                         const red = playerData.red || 0;
 
                         // Goal points by position
-                        if (pos.includes('defender') || pos.includes('goal')) {
+                        if (pos.includes('goal') || pos === 'gk') {
+                            sessionPoints += (goals * 5);
+                            sessionPoints += (assists * 3);
+                        } else if (pos.includes('defender')) {
                             sessionPoints += (goals * 3);
                             sessionPoints += (assists * 3);
                         } else if (pos.includes('midfield')) {
@@ -57,6 +67,20 @@ const Analytics = {
                         } else { // Forwards
                             sessionPoints += (goals * 2);
                             sessionPoints += (assists * 1);
+                        }
+
+                        // Clean Sheet Bonus (Team conceded 0 goals)
+                        // Verify clean sheet by checking the OPPONENT's score
+                        // The 'team' object has 'score'. We need to find the OTHER team in the session.
+                        const opponent = session.teams.find(t => t.name !== team.name);
+                        if (opponent && opponent.score === 0) {
+                            if (pos.includes('goal') || pos === 'gk') {
+                                sessionPoints += 4;
+                            } else if (pos.includes('defender')) {
+                                sessionPoints += 3;
+                            } else {
+                                sessionPoints += 2;
+                            }
                         }
 
                         // Card deductions

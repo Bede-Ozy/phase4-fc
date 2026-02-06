@@ -62,22 +62,34 @@
         </div>
 
         <!-- Core Basics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center border-t-4 border-primary">
-                <div class="text-3xl mb-2">🏟️</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+            <div
+                class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center border-t-4 border-primary">
+                <div class="text-3xl mb-2">📅</div>
                 <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Appearance</h3>
                 <div class="text-2xl font-black text-primary">+1 <span
                         class="text-xs text-slate-500 font-bold">pt</span></div>
-                <p class="text-xs text-slate-500 mt-2">Awarded for playing in any match or training session.</p>
+                <div class="text-[10px] text-slate-500 font-bold uppercase mt-0">+0.5 for Subs</div>
+                <p class="text-xs text-slate-500 mt-2">Awarded for playing. Starters get full points, subs get half.</p>
             </div>
-            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center border-t-4 border-yellow-500">
+            <div
+                class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center border-t-4 border-emerald-500">
+                <div class="text-3xl mb-2">🥅</div>
+                <h3 class="font-bold text-white uppercase tracking-wider text-xs mb-1">Clean Sheet</h3>
+                <div class="text-xl font-black text-emerald-500">+2 <span
+                        class="text-xs text-slate-500 font-bold">pts</span></div>
+                <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold">+3 Def / +4 GK</p>
+            </div>
+            <div
+                class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center border-t-4 border-yellow-500">
                 <div class="text-3xl mb-2">🟨</div>
                 <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Yellow Card</h3>
                 <div class="text-2xl font-black text-yellow-500">-2 <span
                         class="text-xs text-slate-500 font-bold">pts</span></div>
                 <p class="text-xs text-slate-500 mt-2">Deducted for a booking during a session.</p>
             </div>
-            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center border-t-4 border-red-600">
+            <div
+                class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center border-t-4 border-red-600">
                 <div class="text-3xl mb-2">🟥</div>
                 <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Red Card</h3>
                 <div class="text-2xl font-black text-red-600">-4 <span
@@ -104,18 +116,35 @@
                             class="inline-block px-3 py-1 rounded bg-blue-500/20 text-blue-400 text-xs font-black uppercase tracking-widest mb-2">
                             Defenders & GKs</div>
                         <h3 class="text-2xl font-black text-white mb-2">The Fortress</h3>
-                        <p class="text-slate-400 text-sm leading-relaxed">Defenders are rewarded heavily for
-                            contributing to the attack, as these actions are rarer and high-impact.</p>
+                        <p class="text-slate-400 text-sm leading-relaxed mb-4">Rewarded for clean sheets and attacking
+                            contributions. Goalkeepers get extra bonuses for goals.</p>
+                        <div
+                            class="inline-flex items-center gap-2 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                            <span class="text-lg">🧤</span>
+                            <div class="text-left">
+                                <div class="text-[10px] text-emerald-400 font-bold uppercase leading-none">GK Special
+                                </div>
+                                <div class="text-xs text-white font-bold">+5 Goal / +4 Clean Sheet</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="md:w-2/3 grid grid-cols-2 gap-4">
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                            <div class="text-xs font-bold text-slate-500 uppercase">Goal Scored</div>
-                            <div class="text-3xl font-black text-white">+3 <span
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 relative overflow-hidden">
+                            <div
+                                class="text-3xl absolute right-2 top-1/2 -translate-y-1/2 opacity-20 grayscale grayscale-0">
+                                ⚽</div>
+                            <div class="text-xs font-bold text-slate-500 uppercase relative z-10">Goal Scored</div>
+                            <div class="text-3xl font-black text-white relative z-10">+3 <span
                                     class="text-sm text-slate-500">pts</span></div>
+                            <div class="text-[10px] text-emerald-500 font-bold uppercase mt-1 relative z-10">GK gets +5
+                            </div>
                         </div>
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                            <div class="text-xs font-bold text-slate-500 uppercase">Assist</div>
-                            <div class="text-3xl font-black text-white">+3 <span
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 relative overflow-hidden">
+                            <div
+                                class="text-3xl absolute right-2 top-1/2 -translate-y-1/2 opacity-20 grayscale grayscale-0">
+                                👟</div>
+                            <div class="text-xs font-bold text-slate-500 uppercase relative z-10">Assist</div>
+                            <div class="text-3xl font-black text-white relative z-10">+3 <span
                                     class="text-sm text-slate-500">pts</span></div>
                         </div>
                     </div>
@@ -126,10 +155,10 @@
                         <span
                             class="text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1">Example</span>
                         <p class="text-sm text-slate-300">
-                            <span class="font-bold text-white">Dums (Defender)</span> plays a match, scores 1 goal,
-                            and gets 1 assist.<br>
-                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 3 (Goal) + 3 (Assist) = <span
-                                    class="text-white font-bold">7 Total Points</span></span>
+                            <span class="font-bold text-white">Dums (Defender)</span> plays, keeps a clean sheet, scores
+                            1 goal.<br>
+                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 3 (Clean Sheet) + 3 (Goal) =
+                                <span class="text-white font-bold">7 Total Points</span></span>
                         </p>
                     </div>
                 </div>
@@ -152,14 +181,20 @@
                             control the flow of the game.</p>
                     </div>
                     <div class="md:w-2/3 grid grid-cols-2 gap-4">
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                            <div class="text-xs font-bold text-slate-500 uppercase">Goal Scored</div>
-                            <div class="text-3xl font-black text-white">+2 <span
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 relative overflow-hidden">
+                            <div
+                                class="text-3xl absolute right-2 top-1/2 -translate-y-1/2 opacity-20 grayscale grayscale-0">
+                                ⚽</div>
+                            <div class="text-xs font-bold text-slate-500 uppercase relative z-10">Goal Scored</div>
+                            <div class="text-3xl font-black text-white relative z-10">+2 <span
                                     class="text-sm text-slate-500">pts</span></div>
                         </div>
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                            <div class="text-xs font-bold text-slate-500 uppercase">Assist</div>
-                            <div class="text-3xl font-black text-white">+2 <span
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 relative overflow-hidden">
+                            <div
+                                class="text-3xl absolute right-2 top-1/2 -translate-y-1/2 opacity-20 grayscale grayscale-0">
+                                👟</div>
+                            <div class="text-xs font-bold text-slate-500 uppercase relative z-10">Assist</div>
+                            <div class="text-3xl font-black text-white relative z-10">+2 <span
                                     class="text-sm text-slate-500">pts</span></div>
                         </div>
                     </div>
@@ -196,14 +231,20 @@
                             to rack up big points.</p>
                     </div>
                     <div class="md:w-2/3 grid grid-cols-2 gap-4">
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                            <div class="text-xs font-bold text-slate-500 uppercase">Goal Scored</div>
-                            <div class="text-3xl font-black text-white">+2 <span
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 relative overflow-hidden">
+                            <div
+                                class="text-3xl absolute right-2 top-1/2 -translate-y-1/2 opacity-20 grayscale grayscale-0">
+                                ⚽</div>
+                            <div class="text-xs font-bold text-slate-500 uppercase relative z-10">Goal Scored</div>
+                            <div class="text-3xl font-black text-white relative z-10">+2 <span
                                     class="text-sm text-slate-500">pts</span></div>
                         </div>
-                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50">
-                            <div class="text-xs font-bold text-slate-500 uppercase">Assist</div>
-                            <div class="text-3xl font-black text-white">+1 <span
+                        <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700/50 relative overflow-hidden">
+                            <div
+                                class="text-3xl absolute right-2 top-1/2 -translate-y-1/2 opacity-20 grayscale grayscale-0">
+                                👟</div>
+                            <div class="text-xs font-bold text-slate-500 uppercase relative z-10">Assist</div>
+                            <div class="text-3xl font-black text-white relative z-10">+1 <span
                                     class="text-sm text-slate-500">pt</span></div>
                         </div>
                     </div>
