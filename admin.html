@@ -47,7 +47,9 @@
                         </svg>
                         Export CSV
                     </button>
-                    <a href="index.html" class="nav-link text-sm">Exit Admin</a>
+                    <button onclick="logout()" class="nav-link text-sm text-slate-400 hover:text-white mr-4">Go to
+                        Website</button>
+                    <button onclick="logout()" class="nav-link text-sm text-red-400 hover:text-red-300">Logout</button>
                 </div>
             </div>
         </div>
@@ -77,7 +79,7 @@
 
             <!-- Main Admin View -->
             <div class="lg:col-span-3">
-                <div id="admin-content" class="space-y-6">
+                <div id="admin-content" class="space-y-6 hidden">
                     <!-- Session Entry Header -->
                     <div class="flex justify-between items-center">
                         <h2 id="tab-title" class="text-3xl font-extrabold">Session Management</h2>
@@ -112,8 +114,44 @@
         <!-- New Session Modal Content will be injected here -->
     </div>
 
+    <!-- Login Modal -->
+    <div id="admin-login-modal" class="fixed inset-0 bg-dark z-[200] flex items-center justify-center p-4">
+        <div class="glass-card p-10 rounded-3xl w-full max-w-md border border-slate-700 text-center">
+            <div class="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <span class="text-3xl">🔒</span>
+            </div>
+            <h2 class="text-2xl font-black text-white mb-2">Admin Access</h2>
+            <p class="text-slate-400 text-sm mb-8">Please authenticate to continue</p>
+
+            <form onsubmit="login(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Email Address</label>
+                    <input type="email" id="admin-email" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-primary outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1 uppercase">Password</label>
+                    <input type="password" id="admin-password" required
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-primary outline-none transition-colors">
+                </div>
+                <div id="login-error"
+                    class="hidden text-red-500 text-xs font-bold text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                    Invalid credentials
+                </div>
+                <button type="submit"
+                    class="w-full btn-primary py-3 rounded-xl font-bold text-lg shadow-lg hover:shadow-primary/20 transition-all">
+                    Login
+                </button>
+            </form>
+            <div class="mt-8 pt-6 border-t border-slate-700/50">
+                <a href="index.html" class="text-slate-500 text-xs font-bold hover:text-white transition-colors">←
+                    Return to Website</a>
+            </div>
+        </div>
+    </div>
+
     <script src="js/analytics.js"></script>
-    <script src="js/app.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 
 </html>

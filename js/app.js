@@ -1,4 +1,19 @@
-// Phase 4 FC - Core App Logic
+// Phase 4 FC - Core App Logic (Firebase Integrated)
+import {
+    db,
+    auth,
+    collection,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc,
+    onSnapshot,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut,
+    query,
+    orderBy
+} from './firebase-config.js';
 
 // --- State Management ---
 const State = {
@@ -9,93 +24,83 @@ const State = {
     playerFilterPos: 'all',
     matchSearchQuery: '',
     matchFilterType: 'all',
+    user: null, // Auth user
+
     init() {
-        this.load();
-        this.render();
+        this.loadFromLocal(); // Fast load for UI
+        this.render(); // Initial render
+        this.subscribeToData(); // Live sync
+        this.initAuth(); // Auth listener
     },
-    load() {
-        const savedPlayers = localStorage.getItem('p4fc_players');
-        const savedSessions = localStorage.getItem('p4fc_sessions');
-        this.players = savedPlayers ? JSON.parse(savedPlayers) : this.getSeedPlayers();
-        this.sessions = savedSessions ? JSON.parse(savedSessions) : this.getSeedSessions();
-        console.log('State Loaded:', { players: this.players.length, sessions: this.sessions.length });
+
+    loadFromLocal() {
+        try {
+            const savedPlayers = localStorage.getItem('p4fc_players');
+            const savedSessions = localStorage.getItem('p4fc_sessions');
+            if (savedPlayers) this.players = JSON.parse(savedPlayers);
+            if (savedSessions) this.sessions = JSON.parse(savedSessions);
+        } catch (e) {
+            console.error("Error loading local storage", e);
+        }
     },
-    save() {
+
+    saveLocal() {
         localStorage.setItem('p4fc_players', JSON.stringify(this.players));
         localStorage.setItem('p4fc_sessions', JSON.stringify(this.sessions));
     },
-    getSeedPlayers() {
-        return [
-            { id: 1, name: 'Bede O.', position: 'Forward', active: true },
-            { id: 2, name: 'Aderinsola K.', position: 'Midfielder', active: true },
-            { id: 3, name: 'Marcus R.', position: 'Defender', active: true },
-            { id: 4, name: 'John D.', position: 'Midfielder', active: true },
-            { id: 5, name: 'Sarah L.', position: 'Winger', active: true }
-        ];
+
+    subscribeToData() {
+        // Subscribe to Players
+        const qPlayers = query(collection(db, "players"), orderBy("name"));
+        onSnapshot(qPlayers, (snapshot) => {
+            this.players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            this.saveLocal();
+            this.render();
+        });
+
+        // Subscribe to Sessions
+        const qSessions = query(collection(db, "sessions"));
+        onSnapshot(qSessions, (snapshot) => {
+            this.sessions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            this.saveLocal();
+            this.render();
+        });
     },
-    getSeedSessions() {
-        return [
-            {
-                id: 101,
-                date: '2026-01-28',
-                type: 'match',
-                teams: [
-                    {
-                        name: 'Orange', coach: 'Coach Michael', score: 3, players: [
-                            { name: 'Bede O.', goals: 2, assists: 1, yellow: 0, red: 0, role: 'starter' },
-                            { name: 'Sarah L.', goals: 1, assists: 0, yellow: 0, red: 0, role: 'starter' }
-                        ]
-                    },
-                    {
-                        name: 'Blue', coach: 'Coach David', score: 1, players: [
-                            { name: 'Aderinsola K.', goals: 1, assists: 0, yellow: 0, red: 0, role: 'starter' },
-                            { name: 'Marcus R.', goals: 0, assists: 1, yellow: 0, red: 0, role: 'starter' }
-                        ]
-                    }
-                ]
-            },
-            {
-                id: 102,
-                date: '2026-02-01',
-                type: 'training',
-                coach: 'Coach Michael',
-                teams: [
-                    {
-                        name: 'Orange', score: 2, players: [
-                            { name: 'Sarah L.', goals: 2, assists: 0, yellow: 0, red: 0, role: 'starter' },
-                            { name: 'John D.', goals: 0, assists: 1, yellow: 0, red: 0, role: 'starter' }
-                        ]
-                    },
-                    {
-                        name: 'Blue', score: 2, players: [
-                            { name: 'Bede O.', goals: 1, assists: 1, yellow: 0, red: 0, role: 'starter' },
-                            { name: 'Marcus R.', goals: 1, assists: 0, yellow: 1, red: 0, role: 'starter' }
-                        ]
-                    }
-                ]
+
+    initAuth() {
+        onAuthStateChanged(auth, (user) => {
+            this.user = user;
+            const adminContent = document.getElementById('admin-content');
+            const loginModal = document.getElementById('admin-login-modal');
+
+            if (window.location.pathname.includes('admin.html')) {
+                if (user) {
+                    if (loginModal) loginModal.classList.add('hidden');
+                    if (adminContent) adminContent.classList.remove('hidden');
+                    this.renderAdminDashboard();
+                } else {
+                    if (loginModal) loginModal.classList.remove('hidden');
+                    if (adminContent) adminContent.classList.add('hidden');
+                }
             }
-        ];
+        });
     },
+
     render() {
         const path = window.location.pathname.toLowerCase();
-        if (path.includes('index.html') || path.endsWith('/') || path.endsWith('phase4fc') || path.endsWith('phase4fc/') || (!path.includes('admin.html') && !path.includes('stats.html') && !path.includes('.html'))) {
-            this.renderPublicDashboard();
-        } else if (path.includes('stats.html')) {
+        if (path.includes('stats.html')) {
             this.renderStatsPage();
         } else if (path.includes('matches.html')) {
             this.renderMatchHistoryPage();
         } else if (path.includes('admin.html')) {
-            this.renderAdminDashboard();
+            if (this.user) this.renderAdminDashboard();
+        } else {
+            this.renderPublicDashboard();
         }
     },
 
-    renderStatsPage() {
-        this.renderDetailedStats();
-    },
-
-    renderAdminDashboard() {
-        switchTab(this.currentTab);
-    },
+    renderStatsPage() { this.renderDetailedStats(); },
+    renderAdminDashboard() { switchTab(this.currentTab); },
 
     renderPublicDashboard() {
         this.renderLatestMatch();
@@ -104,10 +109,10 @@ const State = {
         this.renderLeaderboard();
     },
 
+    // --- Render Methods ---
     renderMatchHistoryPage() {
         const container = document.getElementById('full-match-list');
         if (!container) return;
-
         const searchQuery = (this.matchSearchQuery || '').toLowerCase();
         const filterType = (this.matchFilterType || 'all').toLowerCase();
 
@@ -120,16 +125,16 @@ const State = {
         });
 
         if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-full py-20 text-center glass-card rounded-3xl">
-                    <div class="text-4xl mb-4">🏟️</div>
-                    <p class="text-slate-500 italic">No matches found matching your criteria.</p>
-                </div>
-            `;
+            container.innerHTML = `<div class="col-span-full py-20 text-center glass-card rounded-3xl"><div class="text-4xl mb-4">🏟️</div><p class="text-slate-500 italic">No matches found matching your criteria.</p></div>`;
             return;
         }
 
-        container.innerHTML = filtered.slice().reverse().map(s => `
+        filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+        container.innerHTML = filtered.map(s => this.getSessionCardHTML(s)).join('');
+    },
+
+    getSessionCardHTML(s) {
+        return `
             <div class="glass-card overflow-hidden rounded-3xl border border-slate-700 hover:border-primary/30 transition-all group">
                 <div class="p-6 md:p-8">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-8">
@@ -139,84 +144,45 @@ const State = {
                                 <div class="text-3xl font-black">${new Date(s.date).getDate()}</div>
                                 <div class="text-[10px] text-slate-500 font-bold uppercase mt-1">${new Date(s.date).getFullYear()}</div>
                             </div>
-                            
                             <div class="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-                                <div class="flex items-center gap-3">
-                                    ${this.getTeamFlag(s.teams[0].name)}
-                                    <h4 class="text-xl font-bold">${s.teams[0].name}</h4>
-                                </div>
-                                <div class="px-6 py-2 bg-slate-900 rounded-2xl border border-slate-700 flex items-center gap-4">
-                                    <span class="text-3xl font-black text-primary">${s.teams[0].score}</span>
-                                    <span class="text-slate-600 font-bold text-sm">VS</span>
-                                    <span class="text-3xl font-black text-primary">${s.teams[1].score}</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <h4 class="text-xl font-bold text-right">${s.teams[1].name}</h4>
-                                    ${this.getTeamFlag(s.teams[1].name)}
-                                </div>
+                                <div class="flex items-center gap-3">${this.getTeamFlag(s.teams[0].name)}<h4 class="text-xl font-bold">${s.teams[0].name}</h4></div>
+                                <div class="px-6 py-2 bg-slate-900 rounded-2xl border border-slate-700 flex items-center gap-4"><span class="text-3xl font-black text-primary">${s.teams[0].score}</span><span class="text-slate-600 font-bold text-sm">VS</span><span class="text-3xl font-black text-primary">${s.teams[1].score}</span></div>
+                                <div class="flex items-center gap-3"><h4 class="text-xl font-bold text-right">${s.teams[1].name}</h4>${this.getTeamFlag(s.teams[1].name)}</div>
                             </div>
                         </div>
-                        
                         <div class="flex flex-col items-center md:items-end gap-3">
                             <span class="px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest border border-primary/20">${s.type}</span>
-                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-                                Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}
-                            </div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}</div>
                         </div>
                     </div>
-
-                    <!-- Scorers & Lineups Section -->
                     <div class="mt-8 pt-6 border-t border-slate-700/50">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div>
-                                <h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[0].name} Lineup & Contributions</h5>
-                                <div class="flex flex-wrap gap-2">
-                                    ${this.renderExpandedPlayers(s.teams[0])}
-                                </div>
-                            </div>
-                            <div class="md:text-right">
-                                <h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[1].name} Lineup & Contributions</h5>
-                                <div class="flex flex-wrap gap-2 md:justify-end">
-                                    ${this.renderExpandedPlayers(s.teams[1])}
-                                </div>
-                            </div>
+                            <div><h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[0].name} Lineup & Contributions</h5><div class="flex flex-wrap gap-2">${this.renderExpandedPlayers(s.teams[0])}</div></div>
+                            <div class="md:text-right"><h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[1].name} Lineup & Contributions</h5><div class="flex flex-wrap gap-2 md:justify-end">${this.renderExpandedPlayers(s.teams[1])}</div></div>
                         </div>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
     },
 
     renderLatestMatch() {
         const container = document.getElementById('latest-match-container');
         if (!container) return;
-
         if (this.sessions.length === 0) {
-            container.innerHTML = `
-                <div class="glass-card p-12 rounded-2xl text-center">
-                    <h2 class="text-xl text-slate-400">Welcome to Phase 4 FC</h2>
-                    <p class="mt-2">No recent sessions recorded. Check back soon or visit Admin to add data.</p>
-                </div>
-            `;
+            container.innerHTML = `<div class="glass-card p-12 rounded-2xl text-center"><h2 class="text-xl text-slate-400">Welcome to Phase 4 FC</h2><p class="mt-2">No recent sessions recorded.</p></div>`;
             return;
         }
-
-        const latest = this.sessions[this.sessions.length - 1];
+        const sorted = [...this.sessions].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const latest = sorted[sorted.length - 1];
 
         container.innerHTML = `
             <div class="glass-card rounded-3xl overflow-hidden relative border border-slate-700">
                 <div class="p-8">
-                    <div class="absolute top-0 right-0 p-4">
-                        <span class="px-3 py-1 bg-primary/20 text-primary text-xs font-bold rounded-full uppercase tracking-widest">${latest.type}</span>
-                    </div>
+                    <div class="absolute top-0 right-0 p-4"><span class="px-3 py-1 bg-primary/20 text-primary text-xs font-bold rounded-full uppercase tracking-widest">${latest.type}</span></div>
                     <div class="flex flex-col md:flex-row items-center justify-between gap-8">
                         <div class="flex-1 text-center md:text-right">
-                            <div class="flex items-center justify-center md:justify-end gap-2 mb-2">
-                                ${this.getTeamFlag(latest.teams[0].name)}
-                                <h4 class="text-slate-400 text-sm font-semibold uppercase">${latest.teams[0].name}</h4>
-                            </div>
+                            <div class="flex items-center justify-center md:justify-end gap-2 mb-2">${this.getTeamFlag(latest.teams[0].name)}<h4 class="text-slate-400 text-sm font-semibold uppercase">${latest.teams[0].name}</h4></div>
                             <div class="text-5xl font-black">${latest.teams[0].score}</div>
-                            <div class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-tight">Coach: ${latest.type === 'training' ? (latest.coach || '--') : (latest.teams[0].coach || '--')}</div>
                         </div>
                         <div class="flex flex-col items-center">
                             <div class="text-slate-500 font-bold text-sm mb-1">${new Date(latest.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
@@ -224,15 +190,10 @@ const State = {
                             <div class="mt-2 text-slate-400 font-bold">VS</div>
                         </div>
                         <div class="flex-1 text-center md:text-left">
-                            <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
-                                ${this.getTeamFlag(latest.teams[1].name)}
-                                <h4 class="text-slate-400 text-sm font-semibold uppercase">${latest.teams[1].name}</h4>
-                            </div>
+                            <div class="flex items-center justify-center md:justify-start gap-2 mb-2">${this.getTeamFlag(latest.teams[1].name)}<h4 class="text-slate-400 text-sm font-semibold uppercase">${latest.teams[1].name}</h4></div>
                             <div class="text-5xl font-black">${latest.teams[1].score}</div>
-                            <div class="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-tight">Coach: ${latest.type === 'training' ? (latest.coach || '--') : (latest.teams[1].coach || '--')}</div>
                         </div>
                     </div>
-                    
                     <div class="mt-8 flex justify-center">
                         <button onclick="State.toggleHeroExpand()" class="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-2 uppercase tracking-widest bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700">
                             ${this.isHeroExpanded ? 'Hide Lineups' : 'View Full Lineups'}
@@ -240,53 +201,30 @@ const State = {
                         </button>
                     </div>
                 </div>
-
                 <div id="hero-lineups" class="${this.isHeroExpanded ? 'block' : 'hidden'} border-t border-slate-700 bg-slate-900/50 animate-in slide-in-from-top duration-300">
                     <div class="grid grid-cols-2 gap-0 divide-x divide-slate-700">
-                        <div class="p-6 md:p-8">
-                            <div class="space-y-2">
-                                ${this.renderExpandedPlayers(latest.teams[0])}
-                            </div>
-                        </div>
-                        <div class="p-6 md:p-8 text-right">
-                            <div class="space-y-2">
-                                ${this.renderExpandedPlayers(latest.teams[1])}
-                            </div>
-                        </div>
+                        <div class="p-6 md:p-8"><div class="space-y-2">${this.renderExpandedPlayers(latest.teams[0])}</div></div>
+                        <div class="p-6 md:p-8 text-right"><div class="space-y-2">${this.renderExpandedPlayers(latest.teams[1])}</div></div>
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
     },
 
     isHeroExpanded: false,
-    toggleHeroExpand() {
-        this.isHeroExpanded = !this.isHeroExpanded;
-        this.renderLatestMatch();
-    },
+    toggleHeroExpand() { this.isHeroExpanded = !this.isHeroExpanded; this.renderLatestMatch(); },
 
     renderExpandedPlayers(team) {
+        const sortedPlayers = [...team.players].sort((a, b) => (a.role === 'sub' ? 1 : 0) - (b.role === 'sub' ? 1 : 0));
         const isBlue = team.name.toLowerCase().includes('blue');
         const isOrange = team.name.toLowerCase().includes('orange');
 
-        // Sort: Starters first, then Subs
-        const sortedPlayers = [...team.players].sort((a, b) => {
-            const roleA = a.role === 'sub' ? 1 : 0;
-            const roleB = b.role === 'sub' ? 1 : 0;
-            return roleA - roleB;
-        });
-
         return sortedPlayers.map(p => {
-            let highlights = '';
             const hasContribution = p.goals > 0 || p.assists > 0 || p.yellow > 0 || p.red > 0;
             const isSub = p.role === 'sub';
-
+            let highlights = '';
             if (hasContribution) {
-                if (isBlue) {
-                    highlights = `bg-blue-500/20 text-blue-400 border border-blue-500/30`;
-                } else if (isOrange) {
-                    highlights = `bg-orange-500/20 text-orange-400 border border-orange-500/30`;
-                }
+                if (isBlue) highlights = `bg-blue-500/20 text-blue-400 border border-blue-500/30`;
+                else if (isOrange) highlights = `bg-orange-500/20 text-orange-400 border border-orange-500/30`;
             }
 
             return `
@@ -302,29 +240,17 @@ const State = {
                             ${Array(p.red || 0).fill(0).map(() => `<span class="text-[10px]" title="Red Card">🟥</span>`).join('')}
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
         }).join('');
     },
 
-    getScorersList(team) {
-        return team.players
-            .filter(p => p.goals > 0)
-            .map(p => `<div>${p.name} <span class="text-primary font-bold">(${p.goals})</span></div>`)
-            .join('') || '<div class="opacity-30">No goals</div>';
-    },
-
     getTeamFlag(teamName) {
-        const color = teamName.toLowerCase().includes('orange') ? '#f97316' :
-            teamName.toLowerCase().includes('blue') ? '#3b82f6' : '#94a3b8';
-        return `
-            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="${color}">
-                <path d="M5 21v-19h14l-2 5 2 5h-12v9h-2z"/>
-            </svg>
-        `;
+        const color = teamName.toLowerCase().includes('orange') ? '#f97316' : teamName.toLowerCase().includes('blue') ? '#3b82f6' : '#94a3b8';
+        return `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="${color}"><path d="M5 21v-19h14l-2 5 2 5h-12v9h-2z"/></svg>`;
     },
 
     renderStatsOverview() {
+        if (!window.Analytics) return;
         const stats = Analytics.getPlayerStats(this.sessions, this.players);
         const leaders = Analytics.getLeaders(stats);
 
@@ -332,42 +258,16 @@ const State = {
         const ta = document.getElementById('top-assister');
         const tk = document.getElementById('top-attendance');
 
-        if (ts) {
-            ts.innerHTML = `
-                <span class="text-3xl font-bold">${leaders.topScorer ? leaders.topScorer.goals : 0}</span>
-                <div class="flex flex-col">
-                    <span class="text-primary text-[10px] font-black uppercase leading-none">Goals</span>
-                    <span class="text-slate-400 text-[10px] font-bold truncate max-w-[80px]">${leaders.topScorer && leaders.topScorer.goals > 0 ? leaders.topScorer.name : '--'}</span>
-                </div>
-            `;
-        }
-        if (ta) {
-            ta.innerHTML = `
-                <span class="text-3xl font-bold">${leaders.topAssister ? leaders.topAssister.assists : 0}</span>
-                <div class="flex flex-col">
-                    <span class="text-secondary text-[10px] font-black uppercase leading-none">Assists</span>
-                    <span class="text-slate-400 text-[10px] font-bold truncate max-w-[80px]">${leaders.topAssister && leaders.topAssister.assists > 0 ? leaders.topAssister.name : '--'}</span>
-                </div>
-            `;
-        }
-        if (tk) {
-            tk.innerHTML = `
-                <span class="text-3xl font-bold">${leaders.appearanceKing ? leaders.appearanceKing.appearances : 0}</span>
-                <div class="flex flex-col">
-                    <span class="text-accent text-[10px] font-black uppercase leading-none">Sessions</span>
-                    <span class="text-slate-400 text-[10px] font-bold truncate max-w-[80px]">${leaders.appearanceKing && leaders.appearanceKing.appearances > 0 ? leaders.appearanceKing.name : '--'}</span>
-                </div>
-            `;
-        }
+        if (ts) ts.innerHTML = `<span class="text-3xl font-bold">${leaders.topScorer ? leaders.topScorer.goals : 0}</span><div class="flex flex-col"><span class="text-primary text-[10px] font-black uppercase leading-none">Goals</span><span class="text-slate-400 text-[10px] font-bold truncate max-w-[80px]">${leaders.topScorer && leaders.topScorer.goals > 0 ? leaders.topScorer.name : '--'}</span></div>`;
+        if (ta) ta.innerHTML = `<span class="text-3xl font-bold">${leaders.topAssister ? leaders.topAssister.assists : 0}</span><div class="flex flex-col"><span class="text-secondary text-[10px] font-black uppercase leading-none">Assists</span><span class="text-slate-400 text-[10px] font-bold truncate max-w-[80px]">${leaders.topAssister && leaders.topAssister.assists > 0 ? leaders.topAssister.name : '--'}</span></div>`;
+        if (tk) tk.innerHTML = `<span class="text-3xl font-bold">${leaders.appearanceKing ? leaders.appearanceKing.appearances : 0}</span><div class="flex flex-col"><span class="text-accent text-[10px] font-black uppercase leading-none">Sessions</span><span class="text-slate-400 text-[10px] font-bold truncate max-w-[80px]">${leaders.appearanceKing && leaders.appearanceKing.appearances > 0 ? leaders.appearanceKing.name : '--'}</span></div>`;
     },
 
     renderMatchList() {
         const container = document.getElementById('match-list');
-        if (!container) return;
-
-        if (this.sessions.length === 0) return;
-
-        container.innerHTML = this.sessions.slice().reverse().map(s => `
+        if (!container || this.sessions.length === 0) return;
+        const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        container.innerHTML = sorted.map(s => `
             <div class="glass-card p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-slate-700 transition-all">
                 <div class="flex items-center gap-4">
                     <div class="text-center bg-slate-800 rounded-lg p-2 min-w-[60px]">
@@ -375,65 +275,21 @@ const State = {
                         <div class="text-xl font-black">${new Date(s.date).getDate()}</div>
                     </div>
                     <div>
-                        <div class="font-bold flex items-center gap-2">
-                            ${this.getTeamFlag(s.teams[0].name)}
-                            ${s.teams[0].name} <span class="text-primary">${s.teams[0].score}</span> 
-                            <span class="text-slate-600">vs</span> 
-                            <span class="text-primary">${s.teams[1].score}</span> ${s.teams[1].name}
-                            ${this.getTeamFlag(s.teams[1].name)}
-                        </div>
+                        <div class="font-bold flex items-center gap-2">${this.getTeamFlag(s.teams[0].name)}${s.teams[0].name} <span class="text-primary">${s.teams[0].score}</span> <span class="text-slate-600">vs</span> <span class="text-primary">${s.teams[1].score}</span> ${s.teams[1].name}${this.getTeamFlag(s.teams[1].name)}</div>
                         <div class="text-xs text-slate-500 uppercase font-bold tracking-widest">${s.type}</div>
                     </div>
                 </div>
-                <div class="hidden sm:flex flex-col items-end">
-                    <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 opacity-50">Starters</div>
-                    <div class="flex -space-x-2 mb-2">
-                        ${s.teams.flatMap(t => t.players).filter(p => !p.role || p.role === 'starter').filter(p => p.goals > 0).map(p => `
-                            <div class="w-8 h-8 rounded-full bg-primary/20 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-primary relative group cursor-help">
-                                ${p.name.split(' ').map(n => n[0]).join('')}
-                                ${p.goals > 1 ? `<span class="absolute -top-1 -right-1 bg-primary text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-slate-900">${p.goals}</span>` : ''}
-                                <span class="absolute top-10 right-0 bg-slate-900 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">${p.name} (${p.goals})</span>
-                            </div>
-                        `).join('') || '<div class="text-[9px] text-slate-700 italic">No starter goals</div>'}
-                    </div>
-
-                    ${s.teams.flatMap(t => t.players).some(p => p.role === 'sub' && p.goals > 0) ? `
-                        <div class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1 opacity-50 mt-1">Subs</div>
-                        <div class="flex -space-x-2">
-                            ${s.teams.flatMap(t => t.players).filter(p => p.role === 'sub' && p.goals > 0).map(p => `
-                                <div class="w-8 h-8 rounded-full bg-secondary/20 border-2 border-slate-900 flex items-center justify-center text-[10px] font-black text-secondary relative group cursor-help">
-                                    <span class="absolute -bottom-1 -right-1 text-[8px]">🔄</span>
-                                    ${p.name.split(' ').map(n => n[0]).join('')}
-                                    ${p.goals > 1 ? `<span class="absolute -top-1 -right-1 bg-secondary text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-slate-900">${p.goals}</span>` : ''}
-                                    <span class="absolute top-10 right-0 bg-slate-900 text-white text-xs p-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 pointer-events-none">${p.name} (Sub) - ${p.goals} Goals</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-                <!-- Expansion Detail View (Hidden by default, could be toggled if we added logic) 
-                     For now implementing the requested visual separation in the summary card 
-                     and ensuring modifying the full view if it exists. -->
-
-                </div>
-            </div>
-        `).join('');
+            </div>`).join('');
     },
 
     renderLeaderboard() {
         const container = document.getElementById('leaderboard');
-        if (!container) return;
-
+        if (!container || !window.Analytics) return;
         const playerStats = Analytics.getPlayerStats(this.sessions, this.players);
-
         const sortKey = this.currentLeaderSort || 'totalPoints';
         const filterRole = (this.currentLeaderFilter || 'all').toLowerCase();
-
         let filtered = playerStats;
-        if (filterRole !== 'all') {
-            filtered = playerStats.filter(p => (p.position || '').toLowerCase().includes(filterRole));
-        }
-
+        if (filterRole !== 'all') filtered = playerStats.filter(p => (p.position || '').toLowerCase().includes(filterRole));
         const sorted = [...filtered].sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0)).slice(0, 10);
 
         container.innerHTML = `
@@ -441,196 +297,79 @@ const State = {
                 <div class="flex items-center justify-between">
                     <span class="text-xs font-black uppercase tracking-widest text-slate-400">Rankings</span>
                     <select onchange="State.currentLeaderFilter = this.value; State.renderLeaderboard()" class="bg-slate-900/50 border border-slate-700 rounded-lg px-2 py-1 text-[10px] font-bold text-white outline-none focus:border-primary">
-                        <option value="all" ${filterRole === 'all' ? 'selected' : ''}>All Roles</option>
-                        <option value="forward" ${filterRole === 'forward' ? 'selected' : ''}>Forwards</option>
-                        <option value="midfielder" ${filterRole === 'midfielder' ? 'selected' : ''}>Midfielders</option>
-                        <option value="defender" ${filterRole === 'defender' ? 'selected' : ''}>Defenders</option>
+                        <option value="all">All Roles</option><option value="forward">Forwards</option><option value="midfielder">Midfielders</option><option value="defender">Defenders</option>
                     </select>
                 </div>
                 <div class="flex gap-2">
-                    <div class="flex-1 relative group z-10">
-                        <button onclick="State.currentLeaderSort = 'totalPoints'; State.renderLeaderboard()" class="w-full py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'totalPoints' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'} transition-all flex items-center justify-center gap-1.5 cursor-help">
-                            Points
-                            <span class="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-600 group-hover:border-primary group-hover:text-primary text-slate-400 flex items-center justify-center text-[8px] transition-colors shadow-sm">?</span>
-                        </button>
-                        
-                        <!-- Tooltip Modal -->
-                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 bg-slate-900 border border-slate-600 p-4 rounded-xl shadow-2xl z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform scale-95 group-hover:scale-100 origin-bottom">
-                            <h4 class="text-xs font-bold text-primary mb-1 uppercase">Point System</h4>
-                            <div class="text-[10px] text-slate-300 leading-relaxed mb-3 font-medium">
-                                Scores based on weighted goals, assists, and apps.
-                            </div>
-                            <a href="points-system.html" class="block text-center bg-primary/10 hover:bg-primary/20 text-primary border border-primary/50 text-[9px] font-bold py-1.5 rounded-lg transition-colors">
-                                View Calculation
-                            </a>
-                            <!-- Arrow -->
-                            <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-8 border-transparent border-t-slate-600"></div>
-                            <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-[2px] border-[6px] border-transparent border-t-slate-900"></div>
-                        </div>
-                    </div>
-
-                    <button onclick="State.currentLeaderSort = 'goals'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'goals' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'} transition-all">Goals</button>
-                    <button onclick="State.currentLeaderSort = 'assists'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'assists' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'} transition-all">Assists</button>
+                     <button onclick="State.currentLeaderSort = 'totalPoints'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'totalPoints' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'}">Points</button>
+                     <button onclick="State.currentLeaderSort = 'goals'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'goals' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'}">Goals</button>
+                     <button onclick="State.currentLeaderSort = 'assists'; State.renderLeaderboard()" class="flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border ${sortKey === 'assists' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-700 text-slate-500'}">Assists</button>
                 </div>
             </div>
             <div class="divide-y divide-slate-700/30">
                 ${sorted.map((p, i) => `
                     <div class="p-4 flex items-center justify-between group hover:bg-slate-800/30 transition-all">
-                        <div class="flex items-center gap-4">
-                            <span class="text-sm font-black ${i < 3 ? 'text-primary' : 'text-slate-600'}">${i + 1}</span>
-                            <div>
-                                <div class="font-bold text-slate-200 text-sm">${p.name}</div>
-                                <div class="text-[9px] text-slate-500 font-bold uppercase">${p.position}</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-base font-black text-white">${p[sortKey] || 0}</div>
-                            <div class="text-[8px] text-slate-600 font-bold uppercase tracking-tighter">${sortKey === 'totalPoints' ? 'Pts' : sortKey}</div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-            ${sorted.length === 0 ? '<div class="p-12 text-center text-slate-600 italic text-sm">No players found</div>' : ''}
-        `;
+                        <div class="flex items-center gap-4"><span class="text-sm font-black ${i < 3 ? 'text-primary' : 'text-slate-600'}">${i + 1}</span><div><div class="font-bold text-slate-200 text-sm">${p.name}</div><div class="text-[9px] text-slate-500 font-bold uppercase">${p.position}</div></div></div>
+                        <div class="text-right"><div class="text-base font-black text-white">${p[sortKey] || 0}</div><div class="text-[8px] text-slate-600 font-bold uppercase tracking-tighter">${sortKey === 'totalPoints' ? 'Pts' : sortKey}</div></div>
+                    </div>`).join('')}
+            </div>`;
     },
 
     renderDetailedStats() {
         const container = document.getElementById('detailed-stats-grid');
-        if (!container) return;
-
+        if (!container || !window.Analytics) return;
         const playerStats = Analytics.getPlayerStats(this.sessions, this.players);
         const searchQuery = (this.playerSearchQuery || '').toLowerCase();
         const filterPos = (this.playerFilterPos || 'all').toLowerCase();
-
         let filtered = playerStats.filter(p => {
             const matchesSearch = p.name.toLowerCase().includes(searchQuery);
             const matchesPos = filterPos === 'all' || (p.position || '').toLowerCase().includes(filterPos);
             return matchesSearch && matchesPos;
         });
-
-        // Sort by points by default
         filtered.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-
         container.innerHTML = filtered.map(p => `
             <div class="glass-card p-6 rounded-[2rem] border border-slate-700 hover:border-primary/50 transition-all group">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h4 class="text-xl font-black text-white group-hover:text-primary transition-colors">${p.name}</h4>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">${p.position}</span>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-3xl font-black text-primary">${p.totalPoints}</div>
-                        <div class="text-[8px] font-black uppercase tracking-tighter text-slate-600">Total Points</div>
-                    </div>
-                </div>
-
+                <div class="flex justify-between items-start mb-6"><div><h4 class="text-xl font-black text-white group-hover:text-primary transition-colors">${p.name}</h4><span class="text-[10px] font-black uppercase tracking-widest text-slate-500">${p.position}</span></div><div class="text-right"><div class="text-3xl font-black text-primary">${p.totalPoints}</div><div class="text-[8px] font-black uppercase tracking-tighter text-slate-600">Total Points</div></div></div>
                 <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30">
-                        <div class="text-primary font-black text-lg">${p.goals}</div>
-                        <div class="text-[8px] font-black text-slate-500 uppercase">Goals ⚽</div>
-                    </div>
-                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30">
-                        <div class="text-secondary font-black text-lg">${p.assists}</div>
-                        <div class="text-[8px] font-black text-slate-500 uppercase">Assists 👟</div>
-                    </div>
-                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30">
-                        <div class="text-white font-black text-lg">${p.appearances}</div>
-                        <div class="text-[8px] font-black text-slate-500 uppercase">Apps 🏟️</div>
-                    </div>
-                    <div class="flex gap-1.5 items-center justify-center bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30">
-                        <div class="flex gap-0.5">
-                            <span class="${p.yellowCards > 0 ? 'opacity-100' : 'opacity-20'}">🟨</span>
-                            <span class="${p.redCards > 0 ? 'opacity-100' : 'opacity-20'}">🟥</span>
-                        </div>
-                        <div class="text-[8px] font-black text-slate-500 uppercase">Cards</div>
-                    </div>
+                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30"><div class="text-primary font-black text-lg">${p.goals}</div><div class="text-[8px] font-black text-slate-500 uppercase">Goals ⚽</div></div>
+                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30"><div class="text-secondary font-black text-lg">${p.assists}</div><div class="text-[8px] font-black text-slate-500 uppercase">Assists 👟</div></div>
+                    <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30"><div class="text-white font-black text-lg">${p.appearances}</div><div class="text-[8px] font-black text-slate-500 uppercase">Apps 🏟️</div></div>
+                    <div class="flex gap-1.5 items-center justify-center bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30"><div class="flex gap-0.5"><span class="${p.yellowCards > 0 ? 'opacity-100' : 'opacity-20'}">🟨</span><span class="${p.redCards > 0 ? 'opacity-100' : 'opacity-20'}">🟥</span></div><div class="text-[8px] font-black text-slate-500 uppercase">Cards</div></div>
                 </div>
-
-                <div class="flex justify-between items-center text-[10px] font-bold text-slate-500 uppercase pt-4 border-t border-slate-700/30">
-                    <span>Performance</span>
-                    <div class="flex gap-1 h-1 w-24 bg-slate-800 rounded-full overflow-hidden">
-                        <div class="bg-primary h-full" style="width: ${Math.min(100, (p.totalPoints / 50) * 100)}%"></div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="col-span-full py-20 text-center glass-card rounded-3xl">
-                    <div class="text-4xl mb-4">🔍</div>
-                    <p class="text-slate-500 italic">No players found matching your search.</p>
-                </div>
-            `;
-        }
+            </div>`).join('');
     },
-
 
     renderAdminSessions() {
         const container = document.getElementById('session-list');
         if (!container) return;
-
         if (this.sessions.length === 0) {
-            container.innerHTML = `
-                <div class="glass-card p-12 rounded-2xl flex flex-col items-center justify-center text-center opacity-50">
-                    <div class="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mb-4">
-                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    </div>
-                    <p class="text-slate-400 italic">No sessions recorded yet. Start by adding your first match or training.</p>
-                </div>
-            `;
+            container.innerHTML = `<div class="glass-card p-12 rounded-2xl flex flex-col items-center justify-center text-center opacity-50"><p class="text-slate-400 italic">No sessions recorded yet.</p></div>`;
             return;
         }
-
-        container.innerHTML = `
-            <div class="space-y-4">
-                ${this.sessions.slice().reverse().map(s => `
-                    <div class="glass-card p-4 rounded-2xl flex items-center justify-between border border-slate-800 group">
-                        <div class="flex items-center gap-6">
-                            <div class="text-xs font-bold text-slate-500">${new Date(s.date).toLocaleDateString()}</div>
-                            <div class="font-bold text-slate-100">
-                                ${s.teams[0].name} <span class="bg-primary/20 text-primary px-2 rounded">${s.teams[0].score}</span> 
-                                <span class="px-2 text-slate-600">vs</span> 
-                                <span class="bg-primary/20 text-primary px-2 rounded">${s.teams[1].score}</span> ${s.teams[1].name}
-                            </div>
-                            <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 uppercase font-black">${s.type}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="editSession(${s.id})" class="text-slate-400 hover:text-primary p-2 transition-colors" title="Edit Session">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </button>
-                            <button onclick="deleteSession(${s.id})" class="text-slate-500 hover:text-red-500 p-2 transition-colors" title="Delete Session">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
-                
-                ${this.sessions.length > 0 ? `
-                    <div class="mt-8 pt-6 border-t border-slate-700/50 flex flex-wrap gap-3">
-                        <span class="text-[10px] font-black text-slate-500 uppercase w-full">Quick Clear (Sessions)</span>
-                        <button onclick="clearData('sessions', '7d')" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold hover:bg-red-500 hover:text-white transition-all">Past 7 Days</button>
-                        <button onclick="clearData('sessions', '30d')" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold hover:bg-red-500 hover:text-white transition-all">Past 30 Days</button>
-                        <button onclick="clearData('sessions', 'all')" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold hover:bg-red-500 hover:text-white transition-all">Clear All</button>
-                    </div>
-                ` : ''}
-            </div>
-        `;
+        const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        container.innerHTML = `<div class="space-y-4">${sorted.map(s => `
+            <div class="glass-card p-4 rounded-2xl flex items-center justify-between border border-slate-800 group">
+                <div class="flex items-center gap-6">
+                    <div class="text-xs font-bold text-slate-500">${new Date(s.date).toLocaleDateString()}</div>
+                    <div class="font-bold text-slate-100">${s.teams[0].name} <span class="bg-primary/20 text-primary px-2 rounded">${s.teams[0].score}</span> vs <span class="bg-primary/20 text-primary px-2 rounded">${s.teams[1].score}</span> ${s.teams[1].name}</div>
+                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 uppercase font-black">${s.type}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="editSession('${s.id}')" class="text-slate-400 hover:text-primary p-2 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                    <button onclick="deleteSession('${s.id}')" class="text-slate-500 hover:text-red-500 p-2 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                </div>
+            </div>`).join('')}</div>`;
     }
 };
 
-// --- Tab Navigation (Admin) ---
-// --- Tab Navigation (Admin) ---
+// --- Tab & Global Funcs ---
 function switchTab(tab) {
     State.currentTab = tab;
     const title = document.getElementById('tab-title');
     if (!title) return;
-
-    // Update sidebar buttons visual state
     document.querySelectorAll('aside button, .space-y-4 button').forEach(btn => {
         if (btn.getAttribute('onclick')?.includes(`'${tab}'`)) {
-            btn.classList.add('border-primary');
-            btn.classList.remove('border-slate-700');
+            btn.classList.add('border-primary'); btn.classList.remove('border-slate-700');
             btn.querySelector('span')?.classList.remove('text-slate-400');
         } else {
             btn.classList.remove('border-primary', 'border-secondary', 'border-accent');
@@ -638,410 +377,118 @@ function switchTab(tab) {
             btn.querySelector('span')?.classList.add('text-slate-400');
         }
     });
-
-    if (tab === 'sessions') {
-        title.innerText = 'Session Management';
-        State.renderAdminSessions();
-    } else if (tab === 'players') {
-        title.innerText = 'Squad Management';
-        renderPlayerManagement();
-    } else if (tab === 'analytics') {
-        title.innerText = 'Deep Analytics';
-        renderDeepAnalytics();
-    }
-}
-
-function renderDeepAnalytics() {
-    const container = document.getElementById('session-list');
-    const stats = Analytics.getPlayerStats(State.sessions, State.players)
-        .sort((a, b) => b.totalPoints - a.totalPoints);
-
-    container.innerHTML = `
-        <div class="glass-card overflow-hidden rounded-2xl border border-slate-700">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-800 text-slate-400 uppercase text-[10px] font-black">
-                        <tr>
-                            <th class="px-4 py-3">Player</th>
-                            <th class="px-4 py-3">Pos</th>
-                            <th class="px-4 py-3">Apps</th>
-                            <th class="px-4 py-3 text-primary">G</th>
-                            <th class="px-4 py-3 text-secondary">A</th>
-                            <th class="px-4 py-3 text-yellow-500">Y</th>
-                            <th class="px-4 py-3 text-red-500">R</th>
-                            <th class="px-4 py-3 font-bold text-white">Points</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-700/50">
-                        ${stats.map(p => `
-                            <tr class="hover:bg-slate-800/40 transition-colors">
-                                <td class="px-4 py-3 font-bold text-slate-100">${p.name}</td>
-                                <td class="px-4 py-3 text-slate-400 text-xs">${p.position}</td>
-                                <td class="px-4 py-3">${p.appearances}</td>
-                                <td class="px-4 py-3 text-primary font-bold">${p.goals}</td>
-                                <td class="px-4 py-3 text-secondary font-bold">${p.assists}</td>
-                                <td class="px-4 py-3 text-yellow-500">${p.yellowCards}</td>
-                                <td class="px-4 py-3 text-red-500">${p.redCards}</td>
-                                <td class="px-4 py-3 font-black text-white">${p.totalPoints}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                ${stats.length === 0 ? '<div class="p-12 text-center text-slate-500 italic">No player data to analyze</div>' : ''}
-            </div>
-        </div>
-    `;
+    if (tab === 'sessions') { title.innerText = 'Session Management'; State.renderAdminSessions(); }
+    else if (tab === 'players') { title.innerText = 'Squad Management'; renderPlayerManagement(); }
+    else if (tab === 'analytics') { title.innerText = 'Deep Analytics'; renderDeepAnalytics(); }
 }
 
 function renderPlayerManagement() {
     const container = document.getElementById('session-list');
     container.innerHTML = `
         <div class="glass-card p-6 rounded-2xl">
-            <div class="flex justify-between items-center mb-6">
-                 <h3 class="font-bold">Active Players</h3>
-                 <button class="btn-secondary text-xs" onclick="showAddPlayerModal()">+ Add Player</button>
-            </div>
+            <div class="flex justify-between items-center mb-6"><h3 class="font-bold">Active Players</h3><button class="btn-secondary text-xs" onclick="showAddPlayerModal()">+ Add Player</button></div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 ${State.players.map(p => `
                     <div class="p-4 bg-slate-800 rounded-xl flex items-center justify-between group hover:ring-1 hover:ring-primary/30 transition-all">
-                        <div>
-                            <div class="font-bold text-slate-100">${p.name}</div>
-                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">${p.position}</div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="editPlayer(${p.id})" class="text-slate-500 hover:text-primary p-2 transition-colors" title="Edit Player">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            </button>
-                            <button onclick="deletePlayer(${p.id})" class="text-slate-500 hover:text-red-400 p-2 transition-colors" title="Remove Player">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                        </div>
-                    </div>
-                `).join('')}
+                        <div><div class="font-bold text-slate-100">${p.name}</div><div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">${p.position}</div></div>
+                        <div class="flex items-center gap-2"><button onclick="editPlayer('${p.id}')" class="text-slate-500 hover:text-primary p-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button><button onclick="deletePlayer('${p.id}')" class="text-slate-500 hover:text-red-400 p-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></div>
+                    </div>`).join('')}
             </div>
-            <div class="mt-8 pt-6 border-t border-slate-700/50 flex flex-wrap gap-3">
-                <span class="text-[10px] font-black text-slate-500 uppercase w-full">Quick Clear (Squad)</span>
-                <button onclick="clearData('players', 'all')" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 text-[10px] font-bold hover:bg-red-500 hover:text-white transition-all">Clear All Players</button>
-            </div>
-        </div>
-    `;
+        </div>`;
 }
 
-// --- Session Entry Implementation ---
 let currentDraft = null;
-
-function openNewSessionModal() {
+window.openNewSessionModal = async function () {
     const overlay = document.getElementById('modal-overlay');
     overlay.classList.remove('hidden');
-
-    currentDraft = {
-        id: Date.now(),
-        date: new Date().toISOString().split('T')[0],
-        type: 'match',
-        coach: '',
-        teams: [
-            { name: 'Orange', coach: '', score: 0, players: [] },
-            { name: 'Blue', coach: '', score: 0, players: [] }
-        ]
-    };
-
+    currentDraft = { date: new Date().toISOString().split('T')[0], type: 'match', coach: '', teams: [{ name: 'Orange', coach: '', score: 0, players: [] }, { name: 'Blue', coach: '', score: 0, players: [] }] };
     renderSessionModal();
 }
 
-function renderSessionModal() {
+window.renderSessionModal = function () {
     const overlay = document.getElementById('modal-overlay');
-
-    // Preserve scroll position and avoid animation on re-renders
     const existingContent = document.getElementById('session-modal-content');
-    const scrollPos = existingContent ? existingContent.scrollTop : 0;
     const isUpdate = !!existingContent;
-
     overlay.innerHTML = `
         <div id="session-modal-content" class="bg-slate-900 border border-slate-700 w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-[2rem] p-6 md:p-10 shadow-2xl ${isUpdate ? '' : 'animate-in fade-in zoom-in duration-300'}">
-            <div class="flex justify-between items-center mb-10">
-                <div>
-                    <h2 class="text-3xl font-black uppercase tracking-tight text-white">Entry <span class="text-primary">Console</span></h2>
-                    <p class="text-slate-500 text-sm font-medium mt-1">Record match details and player performance</p>
-                </div>
-                <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">✕</button>
-            </div>
-
+            <div class="flex justify-between items-center mb-10"><div><h2 class="text-3xl font-black uppercase tracking-tight text-white">Entry <span class="text-primary">Console</span></h2><p class="text-slate-500 text-sm font-medium mt-1">Record match details</p></div><button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">✕</button></div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div class="space-y-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Session Type</label>
-                    <div class="flex gap-2">
-                        <button onclick="currentDraft.type='match'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'match' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">MATCH</button>
-                        <button onclick="currentDraft.type='training'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'training' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">TRAINING</button>
-                    </div>
-                </div>
-                <div class="space-y-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Date</label>
-                    <input type="date" value="${currentDraft.date}" onchange="currentDraft.date=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold">
-                </div>
+                <div class="space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase">Session Type</label><div class="flex gap-2"><button onclick="currentDraft.type='match'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'match' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">MATCH</button><button onclick="currentDraft.type='training'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'training' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">TRAINING</button></div></div>
+                <div class="space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase">Date</label><input type="date" value="${currentDraft.date}" onchange="currentDraft.date=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold"></div>
             </div>
-
-            ${currentDraft.type === 'training' ? `
-                <div class="mb-8 space-y-4">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Training Lead Coach</label>
-                    <input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors">
-                </div>
-            ` : ''}
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Team A -->
-                ${renderTeamDraft(0)}
-                <!-- Team B -->
-                ${renderTeamDraft(1)}
-            </div>
-
-            <div class="mt-12 flex justify-end gap-4">
-                <button onclick="closeModal()" class="btn-secondary">Cancel</button>
-                <button onclick="saveSession()" class="btn-primary px-12">Submit Data</button>
-            </div>
-        </div>
-    `;
-
-    // Restore scroll position
-    const newContent = document.getElementById('session-modal-content');
-    if (newContent && scrollPos > 0) {
-        newContent.scrollTop = scrollPos;
-    }
+            ${currentDraft.type === 'training' ? `<div class="mb-8 space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Training Lead Coach</label><input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors"></div>` : ''}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">${renderTeamDraft(0)}${renderTeamDraft(1)}</div>
+            <div class="mt-12 flex justify-end gap-4"><button onclick="closeModal()" class="btn-secondary">Cancel</button><button onclick="saveSession()" class="btn-primary px-12">Submit Data</button></div>
+        </div>`;
 }
 
-function renderTeamDraft(teamIdx) {
-    const team = currentDraft.teams[teamIdx];
+function renderTeamDraft(teamIndex) {
+    const team = currentDraft.teams[teamIndex];
     return `
-        <div class="glass-card p-5 rounded-3xl border-t-4 ${teamIdx === 0 ? 'border-primary' : 'border-secondary'}">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <input type="text" value="${team.name}" onchange="currentDraft.teams[${teamIdx}].name=this.value" class="bg-transparent text-xl font-black w-32 focus:outline-none block placeholder-slate-700">
-                    ${currentDraft.type === 'match' ? `
-                        <input type="text" placeholder="Coach Name" value="${team.coach || ''}" onchange="currentDraft.teams[${teamIdx}].coach=this.value" class="bg-transparent text-[10px] text-slate-500 font-bold uppercase tracking-widest focus:outline-none focus:text-primary transition-colors">
-                    ` : ''}
-                </div>
-                <div class="text-4xl font-black text-white/20">${team.score}</div>
-            </div>
-            
-            <div class="space-y-2 mb-2 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
-                ${State.players.map(p => {
-        const activeP = team.players.find(ap => ap.name === p.name);
-        return `
-                        <div class="p-2 bg-slate-800/40 rounded-xl flex items-center gap-2 transition-all ${activeP ? 'ring-1 ring-primary/30 bg-slate-800/80' : 'opacity-30 hover:opacity-60'}">
-                            <!-- Player Identity -->
-                            <div class="flex items-center gap-2 flex-grow min-w-0 pr-2 border-r border-slate-700/30">
-                                <button onclick="togglePlayerInDraft(${teamIdx}, '${p.name}')" class="shrink-0 w-6 h-6 rounded-lg border-2 border-slate-700 flex items-center justify-center transition-all ${activeP ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'hover:border-slate-500'}">
-                                    ${activeP ? '✓' : ''}
-                                </button>
-                                <div class="min-w-0">
-                                    <div class="font-bold text-xs text-slate-100 truncate">${p.name}</div>
-                                    <div class="text-[8px] text-slate-500 font-bold uppercase truncate tracking-tighter">${p.position}</div>
-                                </div>
-                                ${activeP ? `
-                                    <button onclick="togglePlayerRole(${teamIdx}, '${p.name}')" class="ml-2 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border transition-all ${activeP.role === 'sub' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-blue-500/10 text-blue-400 border-blue-500/30'}">
-                                        ${activeP.role === 'sub' ? 'SUB 🔄' : 'START ⭐'}
-                                    </button>
-                                ` : ''}
-                            </div>
-                            
-                            <!-- Stat Entry Controls -->
-                            ${activeP ? `
-                                <div class="flex items-center gap-4 shrink-0">
-                                    <!-- Goals & Assists Group -->
-                                    <div class="flex items-center gap-1.5 bg-slate-900/60 p-1.5 rounded-xl border border-slate-700/40">
-                                        <div class="flex items-center gap-1.5 px-2 border-r border-slate-700/50">
-                                            <button onclick="updateStat(${teamIdx}, '${p.name}', 'goals', -1)" class="w-5 h-5 rounded-md bg-slate-700 hover:bg-primary/20 hover:text-primary transition-colors flex items-center justify-center text-xs">-</button>
-                                            <div class="text-center min-w-[16px]">
-                                                <span class="text-xs font-black text-primary leading-none">${activeP.goals}</span>
-                                                <div class="text-[7px] text-slate-500 font-bold uppercase -mt-0.5">G</div>
-                                            </div>
-                                            <button onclick="updateStat(${teamIdx}, '${p.name}', 'goals', 1)" class="w-5 h-5 rounded-md bg-slate-700 hover:bg-primary/20 hover:text-primary transition-colors flex items-center justify-center text-xs">+</button>
-                                        </div>
-                                        <div class="flex items-center gap-1.5 px-2">
-                                            <button onclick="updateStat(${teamIdx}, '${p.name}', 'assists', -1)" class="w-5 h-5 rounded-md bg-slate-700 hover:bg-secondary/20 hover:text-secondary transition-colors flex items-center justify-center text-xs">-</button>
-                                            <div class="text-center min-w-[16px]">
-                                                <span class="text-xs font-black text-secondary leading-none">${activeP.assists}</span>
-                                                <div class="text-[7px] text-slate-500 font-bold uppercase -mt-0.5">A</div>
-                                            </div>
-                                            <button onclick="updateStat(${teamIdx}, '${p.name}', 'assists', 1)" class="w-5 h-5 rounded-md bg-slate-700 hover:bg-secondary/20 hover:text-secondary transition-colors flex items-center justify-center text-xs">+</button>
-                                        </div>
-                                    </div>
-
-                                    <!-- Discipline Group -->
-                                    <div class="flex items-center gap-1.5">
-                                        <button onclick="updateStat(${teamIdx}, '${p.name}', 'yellow', 1)" class="w-5 h-7 rounded-[3px] ${activeP.yellow ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'} flex items-center justify-center text-[10px] font-black uppercase transition-all">
-                                            ${activeP.yellow || 'Y'}
-                                        </button>
-                                        <button onclick="updateStat(${teamIdx}, '${p.name}', 'red', 1)" class="w-5 h-7 rounded-[3px] ${activeP.red ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'bg-red-600/10 text-red-500 border border-red-600/30'} flex items-center justify-center text-[10px] font-black uppercase transition-all">
-                                            ${activeP.red || 'R'}
-                                        </button>
-                                        <button onclick="updateStat(${teamIdx}, '${p.name}', 'ownGoals', 1)" class="w-7 h-7 rounded-full ${activeP.ownGoals ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'bg-slate-900 text-slate-600 border-slate-700'} border flex items-center justify-center text-[9px] font-black transition-all hover:border-red-500">
-                                            ${activeP.ownGoals || 'OG'}
-                                        </button>
-                                    </div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-    }).join('')}
-            </div>
-        </div>
-    `;
+        <div class="glass-card p-6 rounded-2xl border border-slate-700">
+            <div class="mb-6 flex justify-between items-center"><input type="text" value="${team.name}" onchange="currentDraft.teams[${teamIndex}].name=this.value" class="bg-transparent text-xl font-bold text-white border-b border-transparent focus:border-primary outline-none"><input type="number" value="${team.score}" onchange="currentDraft.teams[${teamIndex}].score=parseInt(this.value)" class="w-16 bg-slate-800 p-2 rounded-lg text-center font-black text-xl"></div>
+            <div class="space-y-2 mb-4"><div class="flex gap-2"><select id="player-select-${teamIndex}" class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-white"><option value="">Select Player...</option>${State.players.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}</select><button onclick="addPlayerToTeam(${teamIndex})" class="bg-primary/20 text-primary px-4 rounded-lg font-bold">+</button></div></div>
+            <div class="space-y-2">${team.players.map((p, idx) => `
+                <div class="bg-slate-800 p-3 rounded-lg flex flex-wrap gap-2 items-center justify-between">
+                    <span class="font-bold text-sm">${p.name}</span>
+                    <div class="flex items-center gap-1">
+                         <select onchange="updatePlayerStat(${teamIndex}, ${idx}, 'role', this.value)" class="bg-slate-900 text-xs p-1 rounded"><option value="starter" ${p.role === 'starter' ? 'selected' : ''}>Start</option><option value="sub" ${p.role === 'sub' ? 'selected' : ''}>Sub</option></select>
+                        <input type="number" placeholder="G" value="${p.goals || ''}" onchange="updatePlayerStat(${teamIndex}, ${idx}, 'goals', parseInt(this.value)||0)" class="w-8 bg-slate-900 border border-slate-700 text-center text-xs p-1 rounded">
+                        <input type="number" placeholder="A" value="${p.assists || ''}" onchange="updatePlayerStat(${teamIndex}, ${idx}, 'assists', parseInt(this.value)||0)" class="w-8 bg-slate-900 border border-slate-700 text-center text-xs p-1 rounded">
+                        <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'yellow', (p.yellow||0)+1)" class="w-6 h-6 text-xs bg-yellow-500/20 text-yellow-500 rounded">Y</button>
+                        <button onclick="removePlayerFromTeam(${teamIndex}, ${idx})" class="text-red-500 hover:text-red-400">×</button>
+                    </div>
+                </div>`).join('')}</div>
+        </div>`;
 }
 
-function togglePlayerInDraft(teamIdx, playerName) {
-    const team = currentDraft.teams[teamIdx];
-    const otherTeam = currentDraft.teams[1 - teamIdx];
-
-    // Remove from other team if present
-    otherTeam.players = otherTeam.players.filter(p => p.name !== playerName);
-
-    const exists = team.players.findIndex(p => p.name === playerName);
-    if (exists > -1) {
-        team.players.splice(exists, 1);
-    } else {
-        team.players.push({ name: playerName, goals: 0, assists: 0, yellow: 0, red: 0, ownGoals: 0, role: 'starter' });
-    }
-
-    recalculateScore();
+window.addPlayerToTeam = function (teamIndex) {
+    const name = document.getElementById(`player-select-${teamIndex}`).value;
+    if (!name || currentDraft.teams.some(t => t.players.find(p => p.name === name))) { alert("Player invalid or already added"); return; }
+    currentDraft.teams[teamIndex].players.push({ name, goals: 0, assists: 0, yellow: 0, red: 0, ownGoals: 0, role: 'starter' });
     renderSessionModal();
 }
+window.removePlayerFromTeam = function (teamIndex, idx) { currentDraft.teams[teamIndex].players.splice(idx, 1); renderSessionModal(); }
+window.updatePlayerStat = function (ti, pi, s, v) { currentDraft.teams[ti].players[pi][s] = v; }
+window.closeModal = function () { document.getElementById('modal-overlay').classList.add('hidden'); currentDraft = null; }
+window.saveSession = async function () {
+    if (!currentDraft) return;
+    try {
+        if (currentDraft.id) await updateDoc(doc(db, "sessions", currentDraft.id), currentDraft);
+        else await addDoc(collection(db, "sessions"), currentDraft);
+        closeModal();
+    } catch (e) { console.error(e); alert("Failed to save session."); }
+}
+window.deleteSession = async function (id) { if (confirm('Delete session?')) { try { await deleteDoc(doc(db, "sessions", id)); } catch (e) { console.error(e); } } }
+window.editSession = function (id) { const s = State.sessions.find(s => s.id === id); if (s) { currentDraft = JSON.parse(JSON.stringify(s)); openNewSessionModal(); } }
+window.showAddPlayerModal = async function () {
+    const name = prompt("Player Name:"); if (!name) return;
+    const position = prompt("Position:"); if (!position) return;
+    await addDoc(collection(db, "players"), { name, position, active: true });
+}
+window.deletePlayer = async function (id) { if (confirm("Delete player?")) await deleteDoc(doc(db, "players", id)); }
+window.editPlayer = async function (id) {
+    const p = State.players.find(p => p.id === id); if (!p) return;
+    const name = prompt("Name:", p.name), position = prompt("Pos:", p.position);
+    if (name && position) await updateDoc(doc(db, "players", id), { name, position });
+}
+window.clearData = async function (type) { alert("Bulk clear disabled."); }
 
-function togglePlayerRole(teamIdx, playerName) {
-    const player = currentDraft.teams[teamIdx].players.find(p => p.name === playerName);
-    if (player) {
-        player.role = player.role === 'starter' ? 'sub' : 'starter';
-        renderSessionModal();
-    }
+window.login = async function (e) {
+    e.preventDefault();
+    try {
+        await signInWithEmailAndPassword(auth, document.getElementById('admin-email').value, document.getElementById('admin-password').value);
+        document.getElementById('login-error').classList.add('hidden');
+    } catch (error) { document.getElementById('login-error').classList.remove('hidden'); }
+}
+window.logout = function () { signOut(auth); window.location.href = 'index.html'; }
+
+function renderDeepAnalytics() {
+    const c = document.getElementById('session-list');
+    if (!window.Analytics) { c.innerHTML = "Analytics not loaded"; return; }
+    const stats = Analytics.getPlayerStats(State.sessions, State.players).sort((a, b) => b.totalPoints - a.totalPoints);
+    c.innerHTML = `<div class="glass-card overflow-hidden rounded-2xl border border-slate-700"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-800 text-slate-400 uppercase text-[10px] font-black"><tr><th class="px-4 py-3">Player</th><th class="px-4 py-3">Pos</th><th class="px-4 py-3">Apps</th><th class="px-4 py-3 text-primary">G</th><th class="px-4 py-3 text-secondary">A</th><th class="px-4 py-3 font-bold text-white">Pts</th></tr></thead><tbody class="divide-y divide-slate-700/50">${stats.map(p => `<tr class="hover:bg-slate-800/40 transition-colors"><td class="px-4 py-3 font-bold text-slate-100">${p.name}</td><td class="px-4 py-3 text-slate-400 text-xs">${p.position}</td><td class="px-4 py-3">${p.appearances}</td><td class="px-4 py-3 text-primary font-bold">${p.goals}</td><td class="px-4 py-3 text-secondary font-bold">${p.assists}</td><td class="px-4 py-3 font-black text-white">${p.totalPoints}</td></tr>`).join('')}</tbody></table></div></div>`;
 }
 
-function updateStat(teamIdx, playerName, stat, delta) {
-    const player = currentDraft.teams[teamIdx].players.find(p => p.name === playerName);
-    if (player) {
-        if (stat === 'yellow' || stat === 'red' || stat === 'ownGoals') {
-            player[stat] = (player[stat] || 0) + delta;
-            if (player[stat] > 2 && stat !== 'ownGoals') player[stat] = 0; // Cycle for cards
-            if (player[stat] < 0) player[stat] = 0;
-        } else {
-            player[stat] = Math.max(0, player[stat] + delta);
-        }
-    }
-    recalculateScore();
-    renderSessionModal();
-}
-
-function recalculateScore() {
-    const team0OGs = currentDraft.teams[0].players.reduce((sum, p) => sum + (p.ownGoals || 0), 0);
-    const team1OGs = currentDraft.teams[1].players.reduce((sum, p) => sum + (p.ownGoals || 0), 0);
-
-    currentDraft.teams[0].score = currentDraft.teams[0].players.reduce((sum, p) => sum + p.goals, 0) + team1OGs;
-    currentDraft.teams[1].score = currentDraft.teams[1].players.reduce((sum, p) => sum + p.goals, 0) + team0OGs;
-}
-
-function closeModal() {
-    document.getElementById('modal-overlay').classList.add('hidden');
-}
-
-function saveSession() {
-    const existingIdx = State.sessions.findIndex(s => s.id === currentDraft.id);
-    if (existingIdx > -1) {
-        State.sessions[existingIdx] = currentDraft;
-    } else {
-        State.sessions.push(currentDraft);
-    }
-    State.save();
-    closeModal();
-    State.render();
-}
-
-function editSession(id) {
-    const session = State.sessions.find(s => s.id === id);
-    if (session) {
-        currentDraft = JSON.parse(JSON.stringify(session)); // Deep copy
-        const overlay = document.getElementById('modal-overlay');
-        overlay.classList.remove('hidden');
-        renderSessionModal();
-    }
-}
-
-function editPlayer(id) {
-    const player = State.players.find(p => p.id === id);
-    if (player) {
-        const newName = prompt('Enter new player name:', player.name);
-        if (newName === null) return;
-        const newPos = prompt('Enter new position:', player.position);
-        if (newPos === null) return;
-
-        player.name = newName;
-        player.position = newPos;
-        State.save();
-        State.render();
-        renderPlayerManagement();
-    }
-}
-
-function clearData(type, range) {
-    const confirmMsg = range === 'all' ? `Are you sure you want to clear ALL ${type}?` : `Clear ${type} from the past ${range === '7d' ? '7 days' : '30 days'}?`;
-    if (!confirm(confirmMsg)) return;
-
-    if (type === 'sessions') {
-        if (range === 'all') {
-            State.sessions = [];
-        } else {
-            const days = range === '7d' ? 7 : 30;
-            const cutoff = new Date();
-            cutoff.setDate(cutoff.getDate() - days);
-            State.sessions = State.sessions.filter(s => new Date(s.date) < cutoff);
-        }
-    } else if (type === 'players') {
-        if (range === 'all') {
-            State.players = [];
-            State.sessions = []; // Sessions require players
-        }
-    }
-
-    State.save();
-    State.render();
-    if (type === 'players') renderPlayerManagement();
-    if (type === 'sessions') State.renderAdminSessions();
-}
-
-function deleteSession(id) {
-    if (confirm('Delete this session?')) {
-        State.sessions = State.sessions.filter(s => s.id !== id);
-        State.save();
-        State.render();
-    }
-}
-
-function deletePlayer(id) {
-    if (confirm('Remove player from squad?')) {
-        State.players = State.players.filter(p => p.id !== id);
-        State.save();
-        renderPlayerManagement();
-    }
-}
-
-function showAddPlayerModal() {
-    const name = prompt('Player Name:');
-    const pos = prompt('Position (e.g. Forward):');
-    if (name && pos) {
-        State.players.push({ id: Date.now(), name, position: pos, active: true });
-        State.save();
-        renderPlayerManagement();
-    }
-}
-
-function exportCSV() {
-    const csv = Analytics.generateCSV(State.sessions);
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `p4fc-export-${new Date().toISOString().split('T')[0]}.csv`);
-    a.click();
-}
-
-document.getElementById('export-csv')?.addEventListener('click', exportCSV);
-
-// Initialize App
-window.addEventListener('DOMContentLoaded', () => State.init());
+window.State = State; window.switchTab = switchTab;
+State.init();
