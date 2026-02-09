@@ -195,21 +195,36 @@ const State = {
 
         container.innerHTML = `
             <div class="glass-card rounded-3xl overflow-hidden relative border border-slate-700">
-                <div class="p-8">
-                    <div class="absolute top-0 right-0 p-4"><span class="px-3 py-1 bg-primary/20 text-primary text-xs font-bold rounded-full uppercase tracking-widest">${latest.type}</span></div>
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div class="flex-1 text-center md:text-right">
-                            <div class="flex items-center justify-center md:justify-end gap-2 mb-2">${this.getTeamFlag(latest.teams[0].name)}<h4 class="text-slate-400 text-sm font-semibold uppercase">${latest.teams[0].name}</h4></div>
-                            <div class="text-5xl font-black">${latest.teams[0].score}</div>
+                <div class="p-6 md:p-8">
+                    <!-- Date and Type at top -->
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="text-left">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mb-1">${new Date(latest.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+                            <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded uppercase tracking-widest border border-primary/20">${latest.type}</span>
                         </div>
-                        <div class="flex flex-col items-center">
-                            <div class="text-slate-500 font-bold text-sm mb-1">${new Date(latest.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}</div>
-                            <div class="h-12 w-px bg-slate-700"></div>
-                            <div class="mt-2 text-slate-400 font-bold">VS</div>
+                        <div class="text-[10px] text-slate-600 font-black uppercase tracking-tighter">Latest Session</div>
+                    </div>
+
+                    <!-- Horizontal Scoreline -->
+                    <div class="flex items-center justify-between gap-2 sm:gap-6 py-8 bg-slate-900/50 rounded-2xl px-4 sm:px-8 border border-slate-700/50">
+                        <div class="flex-1 flex flex-col items-center md:items-end text-center md:text-right">
+                            <div class="flex items-center gap-2 mb-2">
+                                ${this.getTeamFlag(latest.teams[0].name)}
+                                <h4 class="text-slate-400 text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-none">${latest.teams[0].name}</h4>
+                            </div>
+                            <div class="text-4xl sm:text-6xl font-black">${latest.teams[0].score}</div>
                         </div>
-                        <div class="flex-1 text-center md:text-left">
-                            <div class="flex items-center justify-center md:justify-start gap-2 mb-2">${this.getTeamFlag(latest.teams[1].name)}<h4 class="text-slate-400 text-sm font-semibold uppercase">${latest.teams[1].name}</h4></div>
-                            <div class="text-5xl font-black">${latest.teams[1].score}</div>
+
+                        <div class="px-4 sm:px-6 py-2 bg-slate-800 rounded-xl border border-slate-700 shrink-0 shadow-inner">
+                            <span class="text-slate-600 font-black text-xs sm:text-sm">VS</span>
+                        </div>
+
+                        <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
+                            <div class="flex items-center gap-2 mb-2">
+                                <h4 class="text-slate-400 text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-none">${latest.teams[1].name}</h4>
+                                ${this.getTeamFlag(latest.teams[1].name)}
+                            </div>
+                            <div class="text-4xl sm:text-6xl font-black">${latest.teams[1].score}</div>
                         </div>
                     </div>
                     <div class="mt-8 flex justify-center">
@@ -379,16 +394,36 @@ const State = {
             return;
         }
         const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
-        container.innerHTML = `<div class="space-y-4">${sorted.map(s => `
-            <div class="glass-card p-4 rounded-2xl flex items-center justify-between border border-slate-800 group">
-                <div class="flex items-center gap-6">
-                    <div class="text-xs font-bold text-slate-500">${new Date(s.date).toLocaleDateString()}</div>
-                    <div class="font-bold text-slate-100">${s.teams[0].name} <span class="bg-primary/20 text-primary px-2 rounded">${s.teams[0].score}</span> vs <span class="bg-primary/20 text-primary px-2 rounded">${s.teams[1].score}</span> ${s.teams[1].name}</div>
-                    <span class="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 uppercase font-black">${s.type}</span>
+        container.innerHTML = `<div class="space-y-4 text-slate-50">${sorted.map(s => `
+            <div class="glass-card p-4 rounded-2xl flex flex-col gap-4 border border-slate-800 hover:border-slate-700 transition-all group">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        <span class="w-2 h-[1px] bg-slate-700"></span>
+                        <div class="text-[10px] font-black text-primary uppercase tracking-widest">${s.type}</div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="editSession('${s.id}')" class="text-slate-500 hover:text-primary p-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                        <button onclick="deleteSession('${s.id}')" class="text-slate-600 hover:text-red-500 p-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="editSession('${s.id}')" class="text-slate-400 hover:text-primary p-2 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                    <button onclick="deleteSession('${s.id}')" class="text-slate-500 hover:text-red-500 p-2 transition-colors"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                
+                <div class="flex items-center justify-between bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
+                    <div class="flex-1 flex items-center gap-2 truncate">
+                        ${this.getTeamFlag(s.teams[0].name)}
+                        <span class="font-bold text-sm truncate uppercase tracking-tight">${s.teams[0].name}</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 px-3 py-1 bg-slate-900 rounded-lg border border-slate-700 shrink-0 shadow-inner mx-2">
+                        <span class="text-xl font-black text-primary">${s.teams[0].score}</span>
+                        <span class="text-[9px] font-bold text-slate-600">VS</span>
+                        <span class="text-xl font-black text-primary">${s.teams[1].score}</span>
+                    </div>
+
+                    <div class="flex-1 flex items-center justify-end gap-2 text-right truncate">
+                        <span class="font-bold text-sm truncate uppercase tracking-tight">${s.teams[1].name}</span>
+                        ${this.getTeamFlag(s.teams[1].name)}
+                    </div>
                 </div>
             </div>`).join('')}</div>`;
     }
