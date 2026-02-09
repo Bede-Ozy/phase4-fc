@@ -14,6 +14,7 @@ import {
     query,
     orderBy
 } from './firebase-config.js';
+import Analytics from './analytics.js';
 
 // --- State Management ---
 const State = {
@@ -250,7 +251,7 @@ const State = {
     },
 
     renderStatsOverview() {
-        if (!window.Analytics) return;
+        if (!window.Analytics || !this.sessions.length) return;
         const stats = Analytics.getPlayerStats(this.sessions, this.players);
         const leaders = Analytics.getLeaders(stats);
 
@@ -406,16 +407,19 @@ Object.defineProperty(window, 'currentDraft', {
 window.openNewSessionModal = async function () {
     const overlay = document.getElementById('modal-overlay');
     overlay.classList.remove('hidden');
-    currentDraft = {
-        date: new Date().toISOString().split('T')[0],
-        type: 'match',
-        location: 'home',
-        coach: '',
-        teams: [
-            { name: 'Phase 4 FC', coach: '', score: 0, players: [] },
-            { name: 'Opponent', coach: '', score: 0, players: [] }
-        ]
-    };
+    // Only initialize if not already set (e.g. by editSession)
+    if (!currentDraft) {
+        currentDraft = {
+            date: new Date().toISOString().split('T')[0],
+            type: 'match',
+            location: 'home',
+            coach: '',
+            teams: [
+                { name: 'Phase 4 FC', coach: '', score: 0, players: [] },
+                { name: 'Opponent', coach: '', score: 0, players: [] }
+            ]
+        };
+    }
     renderSessionModal();
 }
 
@@ -632,8 +636,41 @@ window.saveSession = async function () {
     try {
         if (currentDraft.id) await updateDoc(doc(db, "sessions", currentDraft.id), currentDraft);
         else await addDoc(collection(db, "sessions"), currentDraft);
+
+        // Sync player stats back to Firestore for leaderboards
+        if (window.syncPlayerStatsToFirestore) await window.syncPlayerStatsToFirestore(true);
+
         closeModal();
     } catch (e) { console.error(e); alert("Failed to save session."); }
+}
+
+window.syncPlayerStatsToFirestore = async function (silent = false) {
+    if (!window.Analytics || State.players.length === 0) {
+        if (!silent) alert("Cannot sync: Analytics or Squad data missing.");
+        return;
+    }
+
+    try {
+        if (!silent) console.log("Syncing player stats to Firestore...");
+        const allStats = Analytics.getPlayerStats(State.sessions, State.players);
+
+        for (const stat of allStats) {
+            const playerRef = doc(db, "players", stat.id);
+            await updateDoc(playerRef, {
+                totalPoints: stat.totalPoints || 0,
+                goals: stat.goals || 0,
+                assists: stat.assists || 0,
+                appearances: stat.appearances || 0,
+                yellowCards: stat.yellowCards || 0,
+                redCards: stat.redCards || 0,
+                lastUpdated: new Date().toISOString()
+            });
+        }
+        if (!silent) alert("All player stats synced to Firestore successfully!");
+    } catch (e) {
+        console.error(e);
+        if (!silent) alert("Failed to sync stats.");
+    }
 }
 window.deleteSession = async function (id) { if (confirm('Delete session?')) { try { await deleteDoc(doc(db, "sessions", id)); } catch (e) { console.error(e); } } }
 window.editSession = function (id) { const s = State.sessions.find(s => s.id === id); if (s) { currentDraft = JSON.parse(JSON.stringify(s)); openNewSessionModal(); } }

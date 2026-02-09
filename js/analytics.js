@@ -126,3 +126,6 @@ const Analytics = {
         return csv;
     }
 };
+
+window.Analytics = Analytics;
+export default Analytics;
