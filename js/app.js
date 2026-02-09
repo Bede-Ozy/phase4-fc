@@ -398,58 +398,234 @@ function renderPlayerManagement() {
 }
 
 let currentDraft = null;
+// Expose currentDraft to global scope for inline HTML event handlers
+Object.defineProperty(window, 'currentDraft', {
+    get: () => currentDraft,
+    set: (v) => currentDraft = v
+});
 window.openNewSessionModal = async function () {
     const overlay = document.getElementById('modal-overlay');
     overlay.classList.remove('hidden');
-    currentDraft = { date: new Date().toISOString().split('T')[0], type: 'match', coach: '', teams: [{ name: 'Orange', coach: '', score: 0, players: [] }, { name: 'Blue', coach: '', score: 0, players: [] }] };
+    currentDraft = {
+        date: new Date().toISOString().split('T')[0],
+        type: 'match',
+        location: 'home',
+        coach: '',
+        teams: [
+            { name: 'Phase 4 FC', coach: '', score: 0, players: [] },
+            { name: 'Opponent', coach: '', score: 0, players: [] }
+        ]
+    };
+    renderSessionModal();
+}
+
+window.switchSessionType = function (type) {
+    currentDraft.type = type;
+    if (type === 'training') {
+        currentDraft.teams[0].name = 'Orange';
+        currentDraft.teams[1].name = 'Blue';
+        delete currentDraft.location;
+    } else {
+        currentDraft.teams[0].name = 'Phase 4 FC';
+        currentDraft.teams[1].name = 'Opponent';
+        currentDraft.location = 'home';
+    }
     renderSessionModal();
 }
 
 window.renderSessionModal = function () {
+    if (!currentDraft) return;
     const overlay = document.getElementById('modal-overlay');
     const existingContent = document.getElementById('session-modal-content');
     const isUpdate = !!existingContent;
+
+    // Safety check for initialize simplified teams if editing old data
+    if (!currentDraft.teams[1]) currentDraft.teams[1] = { name: 'Opponent', score: 0, players: [] };
+
+    const isMatch = currentDraft.type === 'match';
+
     overlay.innerHTML = `
         <div id="session-modal-content" class="bg-slate-900 border border-slate-700 w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-[2rem] p-6 md:p-10 shadow-2xl ${isUpdate ? '' : 'animate-in fade-in zoom-in duration-300'}">
-            <div class="flex justify-between items-center mb-10"><div><h2 class="text-3xl font-black uppercase tracking-tight text-white">Entry <span class="text-primary">Console</span></h2><p class="text-slate-500 text-sm font-medium mt-1">Record match details</p></div><button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">✕</button></div>
+            <div class="flex justify-between items-center mb-10"><div><h2 class="text-3xl font-black uppercase tracking-tight text-white">Entry <span class="text-primary">Console</span></h2><p class="text-slate-500 text-sm font-medium mt-1">Record session details</p></div><button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">✕</button></div>
+            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                <div class="space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase">Session Type</label><div class="flex gap-2"><button onclick="currentDraft.type='match'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'match' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">MATCH</button><button onclick="currentDraft.type='training'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'training' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">TRAINING</button></div></div>
-                <div class="space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase">Date</label><input type="date" value="${currentDraft.date}" onchange="currentDraft.date=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold"></div>
+                <div class="space-y-4">
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Session Type</label>
+                    <div class="flex gap-2">
+                        <button onclick="switchSessionType('match')" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'match' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">MATCH</button>
+                        <button onclick="switchSessionType('training')" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'training' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">TRAINING</button>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Date</label>
+                    <input type="date" value="${currentDraft.date}" onchange="currentDraft.date=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold">
+                </div>
             </div>
-            ${currentDraft.type === 'training' ? `<div class="mb-8 space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Training Lead Coach</label><input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors"></div>` : ''}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">${renderTeamDraft(0)}${renderTeamDraft(1)}</div>
+
+            ${isMatch ? `
+            <div class="mb-8 space-y-4">
+                <label class="block text-xs font-bold text-slate-500 uppercase">Match Location</label>
+                <div class="flex gap-2">
+                    <button onclick="currentDraft.location='home'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.location === 'home' ? 'border-secondary bg-secondary/10 text-secondary' : 'border-slate-800 text-slate-500'} font-bold">HOME GAME 🏠</button>
+                    <button onclick="currentDraft.location='away'; renderSessionModal()" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.location === 'away' ? 'border-secondary bg-secondary/10 text-secondary' : 'border-slate-800 text-slate-500'} font-bold">AWAY GAME 🚌</button>
+                </div>
+            </div>
+            ` : ''}
+
+            ${!isMatch ? `<div class="mb-8 space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Training Lead Coach</label><input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors"></div>` : ''}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                ${isMatch ? `
+                    ${renderTeamDraft(0, 'Phase 4 FC', 'Our Team')}
+                    ${renderOpponentDraft(1)}
+                ` : `
+                    ${renderTeamDraft(0, 'Orange', 'Team 1 (Orange)')}
+                    ${renderTeamDraft(1, 'Blue', 'Team 2 (Blue)')}
+                `}
+            </div>
+
             <div class="mt-12 flex justify-end gap-4"><button onclick="closeModal()" class="btn-secondary">Cancel</button><button onclick="saveSession()" class="btn-primary px-12">Submit Data</button></div>
         </div>`;
 }
 
-function renderTeamDraft(teamIndex) {
+window.calculateTeamScores = function () {
+    if (!currentDraft || !currentDraft.teams) return;
+
+    // Team 0 Score = Team 0 Goals + Team 1 Own Goals
+    const team0Goals = currentDraft.teams[0].players.reduce((sum, p) => sum + (p.goals || 0), 0);
+    const team1OwnGoals = currentDraft.teams[1] && currentDraft.teams[1].players ? currentDraft.teams[1].players.reduce((sum, p) => sum + (p.ownGoals || 0), 0) : 0;
+    currentDraft.teams[0].score = team0Goals + team1OwnGoals;
+
+    // Team 1 Score (Only if it has players, i.e., Training or internal match)
+    if (currentDraft.type === 'training' || (currentDraft.teams[1].players && currentDraft.teams[1].players.length > 0)) {
+        const team1Goals = currentDraft.teams[1].players.reduce((sum, p) => sum + (p.goals || 0), 0);
+        const team0OwnGoals = currentDraft.teams[0].players.reduce((sum, p) => sum + (p.ownGoals || 0), 0);
+        currentDraft.teams[1].score = team1Goals + team0OwnGoals;
+    }
+    // For external opponent, score is manual, so we don't overwrite it here
+}
+
+window.updatePlayerStat = function (ti, pi, s, v) {
+    currentDraft.teams[ti].players[pi][s] = v;
+    calculateTeamScores();
+    renderSessionModal();
+}
+
+function renderTeamDraft(teamIndex, defaultName, label) {
+    const team = currentDraft.teams[teamIndex];
+    if (!team.name && defaultName) currentDraft.teams[teamIndex].name = defaultName;
+    const isAutoScore = currentDraft.type === 'training' || teamIndex === 0;
+
+    return `
+        <div class="glass-card p-4 rounded-xl border border-slate-700 h-full">
+            <div class="mb-4 flex justify-between items-center gap-4">
+                <div class="flex-1">
+                     <span class="block text-[10px] font-bold text-slate-500 uppercase mb-1">${label || 'Team Name'}</span>
+                     <input type="text" value="${team.name}" onchange="currentDraft.teams[${teamIndex}].name=this.value" class="w-full bg-transparent text-lg font-bold text-white border-b border-transparent focus:border-primary outline-none" placeholder="Team Name">
+                </div>
+                <div>
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase mb-1 text-center">Score</span>
+                    <input type="number" value="${team.score}" ${isAutoScore ? 'readonly' : 'onchange="currentDraft.teams[${teamIndex}].score=parseInt(this.value)"'} class="w-16 bg-slate-800 p-2 rounded-lg text-center font-black text-lg border border-slate-700 focus:border-primary outline-none ${isAutoScore ? 'opacity-75 cursor-not-allowed' : ''}">
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                    <div class="flex gap-2">
+                        <select id="player-select-${teamIndex}" class="flex-1 bg-slate-900 rounded-lg p-2 text-xs text-white border border-slate-700 outline-none focus:border-primary">
+                            <option value="">Select Player...</option>
+                            ${State.players.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                        </select>
+                        <button onclick="addPlayerToTeam(${teamIndex})" class="bg-primary text-dark px-3 rounded-lg font-bold hover:bg-emerald-400 transition-colors text-xs">+</button>
+                    </div>
+                </div>
+
+                <div class="space-y-1 max-h-[400px] overflow-y-auto pr-1">
+                    ${team.players.length === 0 ? `<div class="text-center py-8 text-slate-600 italic text-sm">No players added yet</div>` : ''}
+                    ${team.players.map((p, idx) => `
+                    <div class="bg-slate-800 p-2 rounded-lg border border-slate-700/50 flex items-center justify-between gap-2 group hover:border-slate-600 transition-all">
+                        <div class="flex items-center gap-2 min-w-0">
+                             <button onclick="removePlayerFromTeam(${teamIndex}, ${idx})" class="text-slate-500 hover:text-red-400 font-bold px-1 text-xs">×</button>
+                             <div class="font-bold text-xs text-white truncate max-w-[80px]" title="${p.name}">${p.name}</div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <!-- Role -->
+                            <select onchange="updatePlayerStat(${teamIndex}, ${idx}, 'role', this.value)" class="bg-slate-900 text-[9px] p-1 rounded border border-slate-700 text-slate-400 outline-none uppercase font-bold w-12">
+                                <option value="starter" ${p.role === 'starter' ? 'selected' : ''}>Start</option>
+                                <option value="sub" ${p.role === 'sub' ? 'selected' : ''}>Sub</option>
+                            </select>
+
+                            <!-- Goals -->
+                            <div class="flex items-center bg-slate-900 rounded border border-slate-700">
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'goals', Math.max(0, ${(p.goals || 0) - 1}));" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-l transition-colors font-bold text-xs">-</button>
+                                <span class="w-5 text-center text-xs font-black text-primary" title="Goals">${p.goals || 0}</span>
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'goals', ${(p.goals || 0) + 1});" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-r transition-colors font-bold text-xs">+</button>
+                            </div>
+                            
+                            <!-- Assists -->
+                            <div class="flex items-center bg-slate-900 rounded border border-slate-700">
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'assists', Math.max(0, ${(p.assists || 0) - 1}));" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-l transition-colors font-bold text-xs">-</button>
+                                <span class="w-5 text-center text-xs font-black text-secondary" title="Assists">${p.assists || 0}</span>
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'assists', ${(p.assists || 0) + 1});" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-r transition-colors font-bold text-xs">+</button>
+                            </div>
+
+                            <!-- Cards -->
+                            <div class="flex items-center gap-1">
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'yellow', ${(p.yellow || 0) + 1 > 2 ? 0 : (p.yellow || 0) + 1});" 
+                                    class="w-5 h-5 flex items-center justify-center rounded border ${p.yellow > 0 ? 'bg-yellow-500 border-yellow-400' : 'bg-slate-900 border-slate-700 hover:border-yellow-500/50'} transition-all relative" title="Yellow Card">
+                                    <span class="text-[9px] font-black ${p.yellow > 0 ? 'text-black' : 'text-slate-500'}">Y</span>
+                                    ${p.yellow > 1 ? '<span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-[7px] flex items-center justify-center text-white font-bold border border-slate-900">2</span>' : ''}
+                                </button>
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'red', ${(p.red || 0) === 1 ? 0 : 1});" 
+                                    class="w-5 h-5 flex items-center justify-center rounded border ${p.red > 0 ? 'bg-red-600 border-red-500' : 'bg-slate-900 border-slate-700 hover:border-red-500/50'} transition-all" title="Red Card">
+                                    <span class="text-[9px] font-black ${p.red > 0 ? 'text-white' : 'text-slate-500'}">R</span>
+                                </button>
+                            </div>
+
+                             <!-- Own Goals -->
+                            <div class="flex items-center bg-slate-900 rounded border border-slate-700">
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'ownGoals', Math.max(0, ${(p.ownGoals || 0) - 1}));" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-l transition-colors font-bold text-xs">-</button>
+                                <span class="w-5 text-center text-xs font-black text-red-400" title="Own Goals">${p.ownGoals || 0}</span>
+                                <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'ownGoals', ${(p.ownGoals || 0) + 1});" class="w-5 h-5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 rounded-r transition-colors font-bold text-xs">+</button>
+                            </div>
+                        </div>
+                    </div>`).join('')}
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderOpponentDraft(teamIndex) {
     const team = currentDraft.teams[teamIndex];
     return `
-        <div class="glass-card p-6 rounded-2xl border border-slate-700">
-            <div class="mb-6 flex justify-between items-center"><input type="text" value="${team.name}" onchange="currentDraft.teams[${teamIndex}].name=this.value" class="bg-transparent text-xl font-bold text-white border-b border-transparent focus:border-primary outline-none"><input type="number" value="${team.score}" onchange="currentDraft.teams[${teamIndex}].score=parseInt(this.value)" class="w-16 bg-slate-800 p-2 rounded-lg text-center font-black text-xl"></div>
-            <div class="space-y-2 mb-4"><div class="flex gap-2"><select id="player-select-${teamIndex}" class="flex-1 bg-slate-800 rounded-lg p-2 text-sm text-white"><option value="">Select Player...</option>${State.players.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}</select><button onclick="addPlayerToTeam(${teamIndex})" class="bg-primary/20 text-primary px-4 rounded-lg font-bold">+</button></div></div>
-            <div class="space-y-2">${team.players.map((p, idx) => `
-                <div class="bg-slate-800 p-3 rounded-lg flex flex-wrap gap-2 items-center justify-between">
-                    <span class="font-bold text-sm">${p.name}</span>
-                    <div class="flex items-center gap-1">
-                         <select onchange="updatePlayerStat(${teamIndex}, ${idx}, 'role', this.value)" class="bg-slate-900 text-xs p-1 rounded"><option value="starter" ${p.role === 'starter' ? 'selected' : ''}>Start</option><option value="sub" ${p.role === 'sub' ? 'selected' : ''}>Sub</option></select>
-                        <input type="number" placeholder="G" value="${p.goals || ''}" onchange="updatePlayerStat(${teamIndex}, ${idx}, 'goals', parseInt(this.value)||0)" class="w-8 bg-slate-900 border border-slate-700 text-center text-xs p-1 rounded">
-                        <input type="number" placeholder="A" value="${p.assists || ''}" onchange="updatePlayerStat(${teamIndex}, ${idx}, 'assists', parseInt(this.value)||0)" class="w-8 bg-slate-900 border border-slate-700 text-center text-xs p-1 rounded">
-                        <button onclick="updatePlayerStat(${teamIndex}, ${idx}, 'yellow', (p.yellow||0)+1)" class="w-6 h-6 text-xs bg-yellow-500/20 text-yellow-500 rounded">Y</button>
-                        <button onclick="removePlayerFromTeam(${teamIndex}, ${idx})" class="text-red-500 hover:text-red-400">×</button>
-                    </div>
-                </div>`).join('')}</div>
+        <div class="glass-card p-6 rounded-2xl border border-slate-700 h-full flex flex-col">
+            <div class="mb-auto">
+                <span class="block text-xs font-bold text-slate-500 uppercase mb-2">Opponent</span>
+                <input type="text" placeholder="Opponent Name" value="${team.name === 'Opponent' ? '' : team.name}" onchange="currentDraft.teams[${teamIndex}].name=this.value" class="w-full bg-slate-800 text-xl font-bold text-white p-4 rounded-xl border border-slate-700 focus:border-red-500 outline-none mb-6">
+                
+                <span class="block text-xs font-bold text-slate-500 uppercase mb-2">Opponent Score</span>
+                <input type="number" value="${team.score}" onchange="currentDraft.teams[${teamIndex}].score=parseInt(this.value)" class="w-full bg-slate-800 p-8 rounded-xl text-center font-black text-6xl border border-slate-700 focus:border-red-500 outline-none text-red-500">
+            </div>
+            <div class="mt-8 p-4 bg-slate-800/50 rounded-xl text-center">
+                <p class="text-xs text-slate-500">Opponent squad tracking is not enabled.</p>
+            </div>
         </div>`;
 }
 
 window.addPlayerToTeam = function (teamIndex) {
     const name = document.getElementById(`player-select-${teamIndex}`).value;
-    if (!name || currentDraft.teams.some(t => t.players.find(p => p.name === name))) { alert("Player invalid or already added"); return; }
+    if (!name || currentDraft.teams[teamIndex].players.find(p => p.name === name)) { alert("Player invalid or already added"); return; }
     currentDraft.teams[teamIndex].players.push({ name, goals: 0, assists: 0, yellow: 0, red: 0, ownGoals: 0, role: 'starter' });
+    calculateTeamScores();
     renderSessionModal();
 }
-window.removePlayerFromTeam = function (teamIndex, idx) { currentDraft.teams[teamIndex].players.splice(idx, 1); renderSessionModal(); }
-window.updatePlayerStat = function (ti, pi, s, v) { currentDraft.teams[ti].players[pi][s] = v; }
+window.removePlayerFromTeam = function (teamIndex, idx) {
+    currentDraft.teams[teamIndex].players.splice(idx, 1);
+    calculateTeamScores();
+    renderSessionModal();
+}
+// window.updatePlayerStat is defined above
 window.closeModal = function () { document.getElementById('modal-overlay').classList.add('hidden'); currentDraft = null; }
 window.saveSession = async function () {
     if (!currentDraft) return;
