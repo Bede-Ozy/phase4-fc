@@ -661,6 +661,9 @@ window.syncPlayerStatsToFirestore = async function (silent = false) {
                 goals: stat.goals || 0,
                 assists: stat.assists || 0,
                 appearances: stat.appearances || 0,
+                starts: stat.starts || 0,
+                subs: stat.subs || 0,
+                attendancePoints: stat.attendancePoints || 0,
                 yellowCards: stat.yellowCards || 0,
                 redCards: stat.redCards || 0,
                 lastUpdated: new Date().toISOString()

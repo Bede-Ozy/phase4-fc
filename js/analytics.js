@@ -41,12 +41,18 @@ const Analytics = {
                         let sessionPoints = 0;
 
                         // Appearance Points (Starter vs Sub)
-                        const role = session.teams.flatMap(t => t.players).find(p => p.name === name)?.role || 'starter';
+                        const role = playerData.role || 'starter';
+                        let weight = 0;
                         if (role === 'sub') {
-                            sessionPoints += 0.5;
+                            weight = 0.5;
+                            stats[name].subs += 1;
                         } else {
-                            sessionPoints += 1.0;
+                            weight = 1.0;
+                            stats[name].starts += 1;
                         }
+
+                        stats[name].attendancePoints += weight;
+                        sessionPoints += weight;
 
                         const pos = (stats[name].position || '').toLowerCase();
                         const goals = playerData.goals || 0;
@@ -88,9 +94,6 @@ const Analytics = {
                         sessionPoints -= (red * 4);
 
                         stats[name].totalPoints += sessionPoints;
-
-                        if (playerData.role === 'starter') stats[name].starts += 1;
-                        if (playerData.role === 'sub') stats[name].subs += 1;
                     }
                 });
             });
@@ -105,7 +108,7 @@ const Analytics = {
             topPoints: [...playerStats].sort((a, b) => b.totalPoints - a.totalPoints)[0],
             topScorer: [...playerStats].sort((a, b) => b.goals - a.goals)[0],
             topAssister: [...playerStats].sort((a, b) => b.assists - a.assists)[0],
-            appearanceKing: [...playerStats].sort((a, b) => b.appearances - a.appearances)[0]
+            appearanceKing: [...playerStats].sort((a, b) => (b.attendancePoints - a.attendancePoints) || (b.appearances - a.appearances))[0]
         };
     },
 
