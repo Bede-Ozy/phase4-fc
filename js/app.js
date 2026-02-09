@@ -138,22 +138,39 @@ const State = {
         return `
             <div class="glass-card overflow-hidden rounded-3xl border border-slate-700 hover:border-primary/30 transition-all group">
                 <div class="p-6 md:p-8">
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
-                        <div class="flex-1 flex flex-col md:flex-row items-center gap-6">
-                            <div class="text-center bg-slate-800 rounded-2xl p-4 min-w-[100px] border border-slate-700">
-                                <div class="text-xs text-slate-400 font-bold uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { month: 'short' })}</div>
-                                <div class="text-3xl font-black">${new Date(s.date).getDate()}</div>
-                                <div class="text-[10px] text-slate-500 font-bold uppercase mt-1">${new Date(s.date).getFullYear()}</div>
+                    <div class="flex flex-col gap-6">
+                        <!-- Date at top -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-slate-800 rounded-xl px-4 py-2 border border-slate-700 flex items-center gap-3">
+                                    <div class="text-2xl font-black">${new Date(s.date).getDate()}</div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase leading-none">${new Date(s.date).toLocaleDateString('en-GB', { month: 'short' })}</span>
+                                        <span class="text-[10px] text-slate-500 font-bold uppercase">${new Date(s.date).getFullYear()}</span>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest border border-primary/20">${s.type}</span>
                             </div>
-                            <div class="flex flex-col md:flex-row items-center gap-4 md:gap-8">
-                                <div class="flex items-center gap-3">${this.getTeamFlag(s.teams[0].name)}<h4 class="text-xl font-bold">${s.teams[0].name}</h4></div>
-                                <div class="px-6 py-2 bg-slate-900 rounded-2xl border border-slate-700 flex items-center gap-4"><span class="text-3xl font-black text-primary">${s.teams[0].score}</span><span class="text-slate-600 font-bold text-sm">VS</span><span class="text-3xl font-black text-primary">${s.teams[1].score}</span></div>
-                                <div class="flex items-center gap-3"><h4 class="text-xl font-bold text-right">${s.teams[1].name}</h4>${this.getTeamFlag(s.teams[1].name)}</div>
-                            </div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight text-right">Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}</div>
                         </div>
-                        <div class="flex flex-col items-center md:items-end gap-3">
-                            <span class="px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest border border-primary/20">${s.type}</span>
-                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}</div>
+
+                        <!-- Teams and Score aligned horizontally -->
+                        <div class="flex items-center justify-between gap-4 py-4 bg-slate-900/50 rounded-2xl px-4 border border-slate-700/50">
+                            <div class="flex-1 flex items-center gap-3">
+                                ${this.getTeamFlag(s.teams[0].name)}
+                                <h4 class="text-base sm:text-xl font-bold truncate">${s.teams[0].name}</h4>
+                            </div>
+                            
+                            <div class="flex items-center gap-3 sm:gap-6 px-4 sm:px-8 py-2 bg-slate-900 rounded-xl border border-slate-700 shrink-0 shadow-inner">
+                                <span class="text-2xl sm:text-3xl font-black text-primary">${s.teams[0].score}</span>
+                                <span class="text-slate-600 font-bold text-xs">VS</span>
+                                <span class="text-2xl sm:text-3xl font-black text-primary">${s.teams[1].score}</span>
+                            </div>
+
+                            <div class="flex-1 flex items-center justify-end gap-3 text-right">
+                                <h4 class="text-base sm:text-xl font-bold truncate">${s.teams[1].name}</h4>
+                                ${this.getTeamFlag(s.teams[1].name)}
+                            </div>
                         </div>
                     </div>
                     <div class="mt-8 pt-6 border-t border-slate-700/50">
@@ -269,15 +286,29 @@ const State = {
         if (!container || this.sessions.length === 0) return;
         const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
         container.innerHTML = sorted.map(s => `
-            <div class="glass-card p-4 rounded-xl flex items-center justify-between border border-transparent hover:border-slate-700 transition-all">
-                <div class="flex items-center gap-4">
-                    <div class="text-center bg-slate-800 rounded-lg p-2 min-w-[60px]">
-                        <div class="text-xs text-slate-400 font-bold uppercase">${new Date(s.date).toLocaleDateString('en-GB', { month: 'short' })}</div>
-                        <div class="text-xl font-black">${new Date(s.date).getDate()}</div>
+            <div class="glass-card p-4 rounded-2xl flex flex-col gap-4 border border-transparent hover:border-slate-700 transition-all cursor-default">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
+                        <div class="text-[10px] font-black text-primary uppercase tracking-widest">${s.type}</div>
                     </div>
-                    <div>
-                        <div class="font-bold flex items-center gap-2">${this.getTeamFlag(s.teams[0].name)}${s.teams[0].name} <span class="text-primary">${s.teams[0].score}</span> <span class="text-slate-600">vs</span> <span class="text-primary">${s.teams[1].score}</span> ${s.teams[1].name}${this.getTeamFlag(s.teams[1].name)}</div>
-                        <div class="text-xs text-slate-500 uppercase font-bold tracking-widest">${s.type}</div>
+                </div>
+                <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/30">
+                    <div class="flex items-center gap-2 flex-1">
+                        ${this.getTeamFlag(s.teams[0].name)}
+                        <span class="font-bold text-sm truncate">${s.teams[0].name}</span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4 px-4 py-1.5 bg-slate-900 rounded-lg border border-slate-700 mx-2 shrink-0">
+                        <span class="text-xl font-black text-primary">${s.teams[0].score}</span>
+                        <span class="text-[10px] font-bold text-slate-600">vs</span>
+                        <span class="text-xl font-black text-primary">${s.teams[1].score}</span>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 flex-1 text-right">
+                        <span class="font-bold text-sm truncate">${s.teams[1].name}</span>
+                        ${this.getTeamFlag(s.teams[1].name)}
                     </div>
                 </div>
             </div>`).join('');
@@ -703,7 +734,18 @@ function renderDeepAnalytics() {
     const c = document.getElementById('session-list');
     if (!window.Analytics) { c.innerHTML = "Analytics not loaded"; return; }
     const stats = Analytics.getPlayerStats(State.sessions, State.players).sort((a, b) => b.totalPoints - a.totalPoints);
-    c.innerHTML = `<div class="glass-card overflow-hidden rounded-2xl border border-slate-700"><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-800 text-slate-400 uppercase text-[10px] font-black"><tr><th class="px-4 py-3">Player</th><th class="px-4 py-3">Pos</th><th class="px-4 py-3">Apps</th><th class="px-4 py-3 text-primary">G</th><th class="px-4 py-3 text-secondary">A</th><th class="px-4 py-3 font-bold text-white">Pts</th></tr></thead><tbody class="divide-y divide-slate-700/50">${stats.map(p => `<tr class="hover:bg-slate-800/40 transition-colors"><td class="px-4 py-3 font-bold text-slate-100">${p.name}</td><td class="px-4 py-3 text-slate-400 text-xs">${p.position}</td><td class="px-4 py-3">${p.appearances}</td><td class="px-4 py-3 text-primary font-bold">${p.goals}</td><td class="px-4 py-3 text-secondary font-bold">${p.assists}</td><td class="px-4 py-3 font-black text-white">${p.totalPoints}</td></tr>`).join('')}</tbody></table></div></div>`;
+    c.innerHTML = `<div class="glass-card overflow-hidden rounded-2xl border border-slate-700"><div class="overflow-x-auto"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-slate-800 text-slate-400 uppercase text-[10px] font-black"><tr><th class="px-4 py-3">Player</th><th class="px-4 py-3">Pos</th><th class="px-4 py-3">Apps</th><th class="px-4 py-3 text-primary">G</th><th class="px-4 py-3 text-secondary">A</th><th class="px-4 py-3 text-yellow-400">Y</th><th class="px-4 py-3 text-red-500">R</th><th class="px-4 py-3 font-bold text-white">Pts</th></tr></thead><tbody class="divide-y divide-slate-700/50">${stats.map(p => {
+        return `<tr class="hover:bg-slate-800/40 transition-colors">
+            <td class="px-4 py-3 font-bold text-slate-100">${p.name}</td>
+            <td class="px-4 py-3 text-slate-400 text-xs">${p.position}</td>
+            <td class="px-4 py-3">${p.appearances}</td>
+            <td class="px-4 py-3 text-primary font-bold">${p.goals}</td>
+            <td class="px-4 py-3 text-secondary font-bold">${p.assists}</td>
+            <td class="px-4 py-3 text-yellow-400 font-bold">${p.yellowCards || 0}</td>
+            <td class="px-4 py-3 text-red-500 font-bold">${p.redCards || 0}</td>
+            <td class="px-4 py-3 font-black text-white">${p.totalPoints}</td>
+        </tr>`;
+    }).join('')}</tbody></table></div></div>`;
 }
 
 window.State = State; window.switchTab = switchTab;
