@@ -137,19 +137,19 @@ const State = {
     getSessionCardHTML(s) {
         return `
             <div class="glass-card overflow-hidden rounded-3xl border border-slate-700 hover:border-primary/30 transition-all group">
-                <div class="p-6 md:p-8">
-                    <div class="flex flex-col gap-6">
+                <div class="p-4 sm:p-6">
+                    <div class="flex flex-col gap-4">
                         <!-- Date at top -->
                         <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="bg-slate-800 rounded-xl px-4 py-2 border border-slate-700 flex items-center gap-3">
-                                    <div class="text-2xl font-black">${new Date(s.date).getDate()}</div>
+                            <div class="flex items-center gap-2">
+                                <div class="bg-slate-800 rounded-xl px-3 py-1.5 border border-slate-700 flex items-center gap-2">
+                                    <div class="text-xl font-black">${new Date(s.date).getDate()}</div>
                                     <div class="flex flex-col">
-                                        <span class="text-[10px] text-slate-400 font-bold uppercase leading-none">${new Date(s.date).toLocaleDateString('en-GB', { month: 'short' })}</span>
-                                        <span class="text-[10px] text-slate-500 font-bold uppercase">${new Date(s.date).getFullYear()}</span>
+                                        <span class="text-[9px] text-slate-400 font-bold uppercase leading-none">${new Date(s.date).toLocaleDateString('en-GB', { month: 'short' })}</span>
+                                        <span class="text-[9px] text-slate-500 font-bold uppercase">${new Date(s.date).getFullYear()}</span>
                                     </div>
                                 </div>
-                                <span class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black rounded-full uppercase tracking-widest border border-primary/20">${s.type}</span>
+                                <span class="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-black rounded uppercase tracking-widest border border-primary/20">${s.type}</span>
                             </div>
                             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight text-right">Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}</div>
                         </div>
@@ -301,12 +301,12 @@ const State = {
         if (!container || this.sessions.length === 0) return;
         const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
         container.innerHTML = sorted.map(s => `
-            <div class="glass-card p-4 rounded-2xl flex flex-col gap-4 border border-transparent hover:border-slate-700 transition-all cursor-default">
+            <div class="glass-card p-3 rounded-2xl flex flex-col gap-3 border border-transparent hover:border-slate-700 transition-all cursor-default">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                        <span class="w-1 h-1 bg-slate-700 rounded-full"></span>
-                        <div class="text-[10px] font-black text-primary uppercase tracking-widest">${s.type}</div>
+                        <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        <span class="w-1.5 h-[1px] bg-slate-700"></span>
+                        <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type}</div>
                     </div>
                 </div>
                 <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/30">
@@ -394,13 +394,13 @@ const State = {
             return;
         }
         const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
-        container.innerHTML = `<div class="space-y-4 text-slate-50">${sorted.map(s => `
-            <div class="glass-card p-4 rounded-2xl flex flex-col gap-4 border border-slate-800 hover:border-slate-700 transition-all group">
+        container.innerHTML = `<div class="space-y-3 text-slate-50">${sorted.map(s => `
+            <div class="glass-card p-3 rounded-2xl flex flex-col gap-3 border border-slate-800 hover:border-slate-700 transition-all group">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-                        <span class="w-2 h-[1px] bg-slate-700"></span>
-                        <div class="text-[10px] font-black text-primary uppercase tracking-widest">${s.type}</div>
+                        <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        <span class="w-1.5 h-[1px] bg-slate-700"></span>
+                        <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type}</div>
                     </div>
                     <div class="flex items-center gap-1">
                         <button onclick="editSession('${s.id}')" class="text-slate-500 hover:text-primary p-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
@@ -710,6 +710,27 @@ window.saveSession = async function () {
     } catch (e) { console.error(e); alert("Failed to save session."); }
 }
 
+window.exportStatsCSV = function () {
+    if (!window.Analytics || State.sessions.length === 0) {
+        alert("No session data available to export.");
+        return;
+    }
+    try {
+        const csvContent = Analytics.generateCSV(State.sessions);
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `phase4fc_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (e) {
+        console.error(e);
+        alert("Failed to generate CSV export.");
+    }
+}
 window.syncPlayerStatsToFirestore = async function (silent = false) {
     if (!window.Analytics || State.players.length === 0) {
         if (!silent) alert("Cannot sync: Analytics or Squad data missing.");
