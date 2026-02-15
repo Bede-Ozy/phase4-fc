@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 4 FC | Player Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: { 'xs': '375px' },
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#0ea5e9',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-50">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-[60] glass-card border-b border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 sports-gradient rounded-lg flex items-center justify-center shadow-lg">
+                        <span class="text-white font-bold text-xl">P4</span>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">PHASE 4 <span class="text-primary">FC</span></span>
+                </div>
+
+                <!-- Desktop Nav -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="../index.html" class="nav-link text-slate-400">Dashboard</a>
+                    <a href="stats.html" class="nav-link text-slate-400">Player Stats</a>
+                    <a href="player-comparison.html" class="nav-link font-medium text-primary">Comparison</a>
+                    <a href="../matches.html" class="nav-link text-slate-400">Match History</a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <a href="../admin.html" class="hidden md:inline-flex btn-secondary text-sm px-4 py-2">Club Admin</a>
+                    <!-- Hamburger Menu Button -->
+                    <button onclick="toggleMobileMenu()"
+                        class="md:hidden text-white focus:outline-none z-50 relative p-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path id="hamburger-icon-path" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu"
+        class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-xl transform translate-x-full transition-transform duration-300 md:hidden flex flex-col pt-24 px-8">
+        <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-white p-2">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <div class="flex flex-col gap-6 text-right">
+            <a href="../index.html"
+                class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors">Dashboard</a>
+            <a href="stats.html" class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors">Player
+                Stats</a>
+            <a href="player-comparison.html" class="text-2xl font-bold text-primary transition-colors">Comparison</a>
+            <a href="../matches.html"
+                class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors">Match History</a>
+            <a href="../admin.html"
+                class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors mt-8 pt-8 border-t border-slate-700">Club
+                Admin</a>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-black uppercase tracking-tight text-white mb-2">Head-to-Head <span
+                    class="text-primary">Comparison</span></h1>
+            <p class="text-slate-400 text-sm">Select two players to compare their performance stats.</p>
+        </div>
+
+        <!-- Comparison Content -->
+        <div id="comparison-container" class="grid grid-cols-2 gap-2 md:gap-8">
+            <!-- Player A Column -->
+            <div class="flex flex-col gap-4">
+                <!-- Top Card: Selection / Summary -->
+                <div id="summary-card-a"
+                    class="glass-card p-3 md:p-6 rounded-2xl border border-slate-700 h-[160px] md:h-[200px] flex flex-col justify-center items-center text-center relative overflow-hidden group hover:border-primary/30 transition-all">
+                    <!-- Default State: Add Button -->
+                    <button onclick="openPlayerSelectModal('A')"
+                        class="flex flex-col items-center gap-2 md:gap-3 text-slate-500 hover:text-primary transition-colors group-hover:scale-105 duration-300">
+                        <div
+                            class="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-dashed border-current flex items-center justify-center">
+                            <span class="text-2xl md:text-4xl font-light">+</span>
+                        </div>
+                        <span class="text-[10px] md:text-sm font-bold uppercase tracking-widest">Select Player A</span>
+                    </button>
+                </div>
+
+                <!-- Bottom Card: Detailed Stats -->
+                <div id="detail-card-a"
+                    class="glass-card p-3 md:p-6 rounded-2xl border border-slate-700 min-h-[300px] md:min-h-[400px] opacity-50 flex items-center justify-center">
+                    <p class="text-[10px] md:text-base text-slate-600 italic">Select player to view details</p>
+                </div>
+            </div>
+
+            <!-- Player B Column -->
+            <div class="flex flex-col gap-4">
+                <!-- Top Card: Selection / Summary -->
+                <div id="summary-card-b"
+                    class="glass-card p-3 md:p-6 rounded-2xl border border-slate-700 h-[160px] md:h-[200px] flex flex-col justify-center items-center text-center relative overflow-hidden group hover:border-secondary/30 transition-all">
+                    <!-- Default State: Add Button -->
+                    <button onclick="openPlayerSelectModal('B')"
+                        class="flex flex-col items-center gap-2 md:gap-3 text-slate-500 hover:text-secondary transition-colors group-hover:scale-105 duration-300">
+                        <div
+                            class="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-dashed border-current flex items-center justify-center">
+                            <span class="text-2xl md:text-4xl font-light">+</span>
+                        </div>
+                        <span class="text-[10px] md:text-sm font-bold uppercase tracking-widest">Select Player B</span>
+                    </button>
+                </div>
+
+                <!-- Bottom Card: Detailed Stats -->
+                <div id="detail-card-b"
+                    class="glass-card p-3 md:p-6 rounded-2xl border border-slate-700 min-h-[300px] md:min-h-[400px] opacity-50 flex items-center justify-center">
+                    <p class="text-[10px] md:text-base text-slate-600 italic">Select player to view details</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Player Selection Modal -->
+    <div id="player-select-modal"
+        class="fixed inset-0 z-[70] bg-slate-900/90 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div
+            class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Select Player</h3>
+                <button onclick="closePlayerSelectModal()"
+                    class="text-slate-500 hover:text-white transition-colors">✕</button>
+            </div>
+
+            <div class="p-4 border-b border-slate-800 bg-slate-900/50">
+                <input type="text" id="player-search-input" placeholder="Search player name..."
+                    class="w-full bg-slate-800 text-white p-3 rounded-xl border border-slate-700 focus:border-primary outline-none transition-colors"
+                    oninput="filterPlayerSelection()">
+            </div>
+
+            <div id="player-selection-list" class="flex-1 overflow-y-auto p-4 space-y-2">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../js/app.js"></script>
+</body>
+
+</html>

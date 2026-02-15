@@ -27,29 +27,63 @@
 <body class="bg-dark text-slate-50">
 
     <!-- Navigation -->
-    <nav class="sticky top-0 z-50 glass-card border-b border-slate-700">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-[60] glass-card border-b border-slate-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
+                <!-- Logo -->
                 <div class="flex items-center gap-2">
-                    <a href="index.html"
-                        class="w-10 h-10 sports-gradient rounded-lg flex items-center justify-center shadow-lg">
+                    <div class="w-10 h-10 sports-gradient rounded-lg flex items-center justify-center shadow-lg">
                         <span class="text-white font-bold text-xl">P4</span>
-                    </a>
+                    </div>
                     <span class="text-xl font-bold tracking-tight">PHASE 4 <span class="text-primary">FC</span></span>
                 </div>
 
+                <!-- Desktop Nav -->
                 <div class="hidden md:flex space-x-8">
-                    <a href="index.html" class="nav-link text-slate-400">Dashboard</a>
-                    <a href="stats.html" class="nav-link font-medium border-b-2 border-primary">Player Stats</a>
-                    <a href="matches.html" class="nav-link text-slate-400">Match History</a>
+                    <a href="../index.html" class="nav-link text-slate-400">Dashboard</a>
+                    <a href="stats.html" class="nav-link font-medium border-b-2 border-primary text-primary">Player
+                        Stats</a>
+                    <a href="player-comparison.html" class="nav-link text-slate-400">Comparison</a>
+                    <a href="../matches.html" class="nav-link text-slate-400">Match History</a>
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <a href="admin.html" class="btn-secondary text-sm px-4 py-2">Club Admin</a>
+                    <a href="../admin.html" class="hidden md:inline-flex btn-secondary text-sm px-4 py-2">Club Admin</a>
+                    <!-- Hamburger Menu Button -->
+                    <button onclick="toggleMobileMenu()"
+                        class="md:hidden text-white focus:outline-none z-50 relative p-2">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path id="hamburger-icon-path" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu"
+        class="fixed inset-0 z-50 bg-slate-900/95 backdrop-blur-xl transform translate-x-full transition-transform duration-300 md:hidden flex flex-col pt-24 px-8">
+        <button onclick="toggleMobileMenu()" class="absolute top-6 right-6 text-white p-2">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <div class="flex flex-col gap-6 text-right">
+            <a href="../index.html"
+                class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors">Dashboard</a>
+            <a href="stats.html" class="text-2xl font-bold text-primary transition-colors">Player Stats</a>
+            <a href="player-comparison.html"
+                class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors">Comparison</a>
+            <a href="../matches.html"
+                class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors">Match History</a>
+            <a href="../admin.html"
+                class="text-2xl font-bold text-slate-300 hover:text-primary transition-colors mt-8 pt-8 border-t border-slate-700">Club
+                Admin</a>
+        </div>
+    </div>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Squad Analytics Section -->
@@ -93,7 +127,7 @@
         </section>
     </main>
 
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="../js/app.js"></script>
 </body>
 
 </html>

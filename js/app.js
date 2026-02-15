@@ -25,6 +25,7 @@ const State = {
     playerFilterPos: 'all',
     matchSearchQuery: '',
     matchFilterType: 'all',
+    comparisonState: { playerA: null, playerB: null, activeSlot: null }, // Comparison State
     user: null, // Auth user
 
     init() {
@@ -93,11 +94,17 @@ const State = {
             this.renderStatsPage();
         } else if (path.includes('matches.html')) {
             this.renderMatchHistoryPage();
+        } else if (path.includes('player-comparison.html')) {
+            this.renderComparePage();
         } else if (path.includes('admin.html')) {
             if (this.user) this.renderAdminDashboard();
         } else {
             this.renderPublicDashboard();
         }
+    },
+
+    renderComparePage() {
+        this.updateComparisonView();
     },
 
     renderStatsPage() { this.renderDetailedStats(); },
@@ -777,6 +784,156 @@ window.editPlayer = async function (id) {
 }
 window.clearData = async function (type) { alert("Bulk clear disabled."); }
 
+// --- Player Comparison Logic ---
+window.openPlayerSelectModal = function (slot) {
+    State.comparisonState.activeSlot = slot;
+    const modal = document.getElementById('player-select-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.getElementById('player-search-input').value = '';
+        document.getElementById('player-search-input').focus();
+        window.filterPlayerSelection();
+    }
+}
+
+window.closePlayerSelectModal = function () {
+    document.getElementById('player-select-modal').classList.add('hidden');
+    State.comparisonState.activeSlot = null;
+}
+
+window.filterPlayerSelection = function () {
+    const query = (document.getElementById('player-search-input').value || '').toLowerCase();
+    const container = document.getElementById('player-selection-list');
+    if (!container) return;
+
+    const filtered = State.players.filter(p => p.name.toLowerCase().includes(query));
+
+    container.innerHTML = filtered.map(p => `
+        <button onclick="selectPlayerForComparison('${p.id}')" class="w-full text-left p-3 hover:bg-slate-800 rounded-xl transition-colors flex items-center justify-between group">
+            <span class="font-bold text-slate-200 group-hover:text-white">${p.name}</span>
+            <span class="text-xs text-slate-500 uppercase font-bold">${p.position}</span>
+        </button>
+    `).join('');
+}
+
+window.selectPlayerForComparison = function (playerId) {
+    const player = State.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    if (State.comparisonState.activeSlot === 'A') State.comparisonState.playerA = player;
+    else if (State.comparisonState.activeSlot === 'B') State.comparisonState.playerB = player;
+
+    State.updateComparisonView();
+    window.closePlayerSelectModal();
+}
+
+State.updateComparisonView = function () {
+    const pA = this.comparisonState.playerA;
+    const pB = this.comparisonState.playerB;
+
+    // Get Stats
+    const statsA = pA ? Analytics.getPlayerStats(this.sessions, [pA])[0] : null;
+    const statsB = pB ? Analytics.getPlayerStats(this.sessions, [pB])[0] : null;
+
+    this.renderComparisonCard('A', pA, statsA, statsB);
+    this.renderComparisonCard('B', pB, statsB, statsA);
+}
+
+State.renderComparisonCard = function (slot, player, stats, opponentStats) {
+    const summaryCard = document.getElementById(`summary-card-${slot.toLowerCase()}`);
+    const detailCard = document.getElementById(`detail-card-${slot.toLowerCase()}`);
+
+    if (!player) {
+        // Default empty state handles itself in HTML, but if we need to reset:
+        if (summaryCard.querySelector('.player-summary')) {
+            summaryCard.innerHTML = `
+                <button onclick="openPlayerSelectModal('${slot}')" class="flex flex-col items-center gap-3 text-slate-500 hover:text-primary transition-colors group-hover:scale-105 duration-300">
+                    <div class="w-16 h-16 rounded-full border-2 border-dashed border-current flex items-center justify-center"><span class="text-4xl font-light">+</span></div>
+                    <span class="text-sm font-bold uppercase tracking-widest">Select Player ${slot}</span>
+                </button>`;
+            detailCard.classList.add('opacity-50');
+            detailCard.innerHTML = `<p class="text-slate-600 italic">Select player to view details</p>`;
+        }
+        return;
+    }
+
+    // Render Summary (Top Card)
+    summaryCard.innerHTML = `
+        <div class="player-summary flex flex-col items-center w-full animate-in fade-in zoom-in duration-300">
+            <div class="relative mb-2">
+                 <div class="w-14 h-14 md:w-20 md:h-20 bg-slate-800 rounded-full flex items-center justify-center text-xl md:text-3xl shadow-xl border-2 border-slate-700">
+                    ${player.name.charAt(0)}
+                 </div>
+                 <button onclick="openPlayerSelectModal('${slot}')" class="absolute -bottom-1 -right-1 w-6 h-6 md:w-8 md:h-8 bg-slate-700 hover:bg-primary text-white rounded-full flex items-center justify-center border border-slate-900 transition-colors shadow-lg">
+                    <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                 </button>
+            </div>
+            <h2 class="text-sm md:text-xl font-black text-white text-center leading-tight mb-1">${player.name}</h2>
+            <span class="px-2 py-0.5 bg-slate-800 rounded text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-slate-400">${player.position}</span>
+        </div>`;
+
+    // Render Details (Bottom Card)
+    detailCard.classList.remove('opacity-50');
+
+    // Helper helper
+    const comp = (val, oppVal, inverse = false) => {
+        if (oppVal === undefined || oppVal === null) return 'text-white';
+        if (val === oppVal) return 'text-slate-300';
+        const better = val > oppVal;
+        if (inverse) return better ? 'text-red-500' : 'text-primary';
+        return better ? 'text-primary' : 'text-red-500'; // Default: Higher is better (green)
+    };
+
+    detailCard.innerHTML = `
+        <div class="w-full space-y-6 animate-in slide-in-from-bottom-4 duration-500">
+            <!-- Points Section -->
+            <div class="text-center p-3 md:p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50">
+                <span class="block text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Impact</span>
+                <span class="text-2xl md:text-4xl font-black ${comp(stats.totalPoints, opponentStats?.totalPoints)}">${stats.totalPoints}</span>
+                <span class="block text-[8px] md:text-[9px] font-bold uppercase text-slate-600 mt-1">Points</span>
+            </div>
+
+            <!-- Main Stats Grid -->
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-2 md:gap-4">
+                <div class="p-2 md:p-3 bg-slate-800/30 rounded-xl border border-slate-700/30 text-center">
+                    <span class="block text-[8px] md:text-[9px] font-black uppercase text-slate-500 mb-1">Goals</span>
+                    <span class="text-lg md:text-2xl font-black ${comp(stats.goals, opponentStats?.goals)}">${stats.goals}</span>
+                </div>
+                <div class="p-2 md:p-3 bg-slate-800/30 rounded-xl border border-slate-700/30 text-center">
+                    <span class="block text-[8px] md:text-[9px] font-black uppercase text-slate-500 mb-1">Assists</span>
+                    <span class="text-lg md:text-2xl font-black ${comp(stats.assists, opponentStats?.assists)}">${stats.assists}</span>
+                </div>
+                <div class="p-2 md:p-3 bg-slate-800/30 rounded-xl border border-slate-700/30 text-center">
+                    <span class="block text-[8px] md:text-[9px] font-black uppercase text-slate-500 mb-1">Apps</span>
+                    <span class="text-lg md:text-2xl font-black ${comp(stats.appearances, opponentStats?.appearances)}">${stats.appearances}</span>
+                </div>
+                <div class="p-2 md:p-3 bg-slate-800/30 rounded-xl border border-slate-700/30 text-center">
+                    <span class="block text-[8px] md:text-[9px] font-black uppercase text-slate-500 mb-1">Starts</span>
+                    <span class="text-lg md:text-2xl font-black ${comp(stats.starts, opponentStats?.starts)}">${stats.starts}</span>
+                </div>
+            </div>
+
+            <!-- Discipline -->
+            <div class="space-y-3 pt-4 border-t border-slate-700/50">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Yellow Cards</span>
+                    <span class="font-black ${comp(stats.yellowCards, opponentStats?.yellowCards, true)}">${stats.yellowCards}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-500 uppercase">Red Cards</span>
+                    <span class="font-black ${comp(stats.redCards, opponentStats?.redCards, true)}">${stats.redCards}</span>
+                </div>
+            </div>
+            
+            <!-- Ratio -->
+             <div class="pt-4 border-t border-slate-700/50 text-center">
+                <span class="block text-[9px] font-bold uppercase text-slate-500 mb-1">G/A per App</span>
+                <span class="text-xl font-black text-white">${((stats.goals + stats.assists) / (stats.appearances || 1)).toFixed(2)}</span>
+            </div>
+        </div>`;
+}
+
+
 window.login = async function (e) {
     e.preventDefault();
     try {
@@ -806,3 +963,21 @@ function renderDeepAnalytics() {
 
 window.State = State; window.switchTab = switchTab;
 State.init();
+
+// --- Mobile Menu Logic ---
+window.toggleMobileMenu = function () {
+    const menu = document.getElementById('mobile-menu');
+    const iconPath = document.getElementById('hamburger-icon-path');
+
+    if (!menu) return;
+
+    if (menu.classList.contains('translate-x-full')) {
+        // Open Menu
+        menu.classList.remove('translate-x-full');
+        if (iconPath) iconPath.setAttribute('d', 'M6 18L18 6M6 6l12 12'); // Close Icon
+    } else {
+        // Close Menu
+        menu.classList.add('translate-x-full');
+        if (iconPath) iconPath.setAttribute('d', 'M4 6h16M4 12h16m-7 6h7'); // Hamburger Icon
+    }
+}
