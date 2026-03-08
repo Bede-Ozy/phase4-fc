@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 4: Core JS | Phase 4 FC Tutorial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-twilight.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#0ea5e9',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-50 font-sans selection:bg-primary/30 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-[60] glass-card border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg border border-white/10">
+                        <span class="text-white font-black text-xl">T</span>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">Phase 4 FC <span
+                            class="text-primary font-black">Tutorial</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-slate-400 hover:text-white transition-colors">Overview</a>
+                    <a href="chapter-1-setup.html" class="nav-link font-medium text-primary">Start Learning</a>
+                    <a href="../index.html" target="_blank"
+                        class="nav-link text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                        View Final App
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-12">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 shrink-0">
+            <div class="sticky top-24 glass-card p-6 rounded-2xl border border-slate-700/50">
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Course Modules</h3>
+                <nav class="space-y-2">
+                    <a href="index.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">0</span>
+                        Project Overview
+                    </a>
+                    <a href="chapter-1-setup.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">1</span>
+                        Project Setup
+                    </a>
+                    <a href="chapter-2-frontend.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">2</span>
+                        Frontend Structure
+                    </a>
+                    <a href="chapter-3-firebase.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">3</span>
+                        Firebase Setup
+                    </a>
+                    <a href="chapter-4-core-logic.html"
+                        class="flex items-center gap-3 p-2 rounded-xl bg-primary/10 text-primary font-bold border border-primary/20">
+                        <span
+                            class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs">4</span>
+                        Core Javascript
+                    </a>
+                    <a href="chapter-5-admin.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">5</span>
+                        Admin Panel & Auth
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0">
+            <div class="prose prose-invert prose-slate max-w-none">
+                <span
+                    class="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-black tracking-widest uppercase border border-primary/30 mb-4 inline-block">Chapter
+                    4</span>
+                <h1 class="text-4xl font-black text-white mt-0 mb-8">Core App Logic & State</h1>
+
+                <p>Most modern single-page applications heavily rely on a <strong>State Management System</strong>.
+                    Instead of directly manipulating HTML whenever data changes, we update our "State" variable. The app
+                    automatically detects this change and re-renders the necessary HTML chunks.</p>
+
+                <h2>1. Setting up app.js</h2>
+                <p>Open <code>js/app.js</code>. First, we need to import our Firebase configuration so we can read from
+                    the database.</p>
+
+                <pre><code class="language-javascript">import {
+    db, collection, doc, onSnapshot, query, orderBy
+} from './firebase-config.js';
+
+// We also import a companion file called analytics.js (which we'll create later for calculating stats points)
+// import Analytics from './analytics.js';
+</code></pre>
+
+                <h2>2. The State Object</h2>
+                <p>Next, we create a global <code>State</code> object. It holds our data arrays (players and sessions),
+                    any active filters, and our core initialization methods.</p>
+
+                <pre><code class="language-javascript">const State = {
+    // 1. Core Data
+    players: [],
+    sessions: [],
+    
+    // 2. Initializer Method
+    init() {
+        this.subscribeToData(); // Listen for database changes
+    },
+
+    // 3. Realtime Database Subscription
+    subscribeToData() {
+        // Query players collection alphabetically
+        const qPlayers = query(collection(db, "players"), orderBy("name"));
+        
+        // onSnapshot fires immediately AND every time data changes in the DB
+        onSnapshot(qPlayers, (snapshot) => {
+            // Map the Firebase Document Snapshot back into a normal Javascript Array
+            this.players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Re-render the UI with the new data!
+            this.render();
+        });
+
+        const qSessions = query(collection(db, "sessions"));
+        onSnapshot(qSessions, (snapshot) => {
+            this.sessions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            this.render();
+        });
+    },
+
+    // 4. Main Router/Render Function
+    render() {
+        this.renderLatestMatch();
+        this.renderMatchList();
+    },
+
+    // 5. HTML Injection Methods
+    renderMatchList() {
+        const container = document.getElementById('match-list');
+        if (!container || this.sessions.length === 0) return;
+        
+        // Sort sessions by date (newest first)
+        const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Map data to HTML strings and inject them into the DOM
+        container.innerHTML = sorted.map(s => {
+            const t1 = s.teams[0];
+            const t2 = s.teams[1];
+            
+            return `
+            &lt;div class="glass-card p-3 rounded-2xl flex flex-col gap-3 mb-4 border border-slate-700 hover:border-primary/30 transition-all cursor-default"&gt;
+                &lt;div class="flex items-center gap-2"&gt;
+                    &lt;div class="text-[9px] font-black text-slate-500 uppercase tracking-widest"&gt;${new Date(s.date).toLocaleDateString()}&lt;/div&gt;
+                    &lt;span class="w-1.5 h-[1px] bg-slate-700"&gt;&lt;/span&gt;
+                    &lt;div class="text-[9px] font-black text-primary uppercase tracking-widest"&gt;${s.type}&lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/30"&gt;
+                    &lt;div class="font-bold text-sm truncate"&gt;${t1.name}&lt;/div&gt;
+                    &lt;div class="flex items-center gap-4 px-4 py-1.5 bg-slate-900 rounded-lg border border-slate-700 mx-2"&gt;
+                        &lt;span class="text-xl font-black text-primary"&gt;${t1.score}&lt;/span&gt;
+                        &lt;span class="text-[10px] font-bold text-slate-600"&gt;vs&lt;/span&gt;
+                        &lt;span class="text-xl font-black text-primary"&gt;${t2.score}&lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;div class="font-bold text-sm truncate"&gt;${t2.name}&lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;`;
+        }).join(''); // Join array of HTML strings into one massive string
+    },
+    
+    // (Stub for Latest Match)
+    renderLatestMatch() {
+        // Similar logic, grabbing sorted[0] and rendering its expanded stats
+    }
+};
+
+// Start the Application!
+State.init();
+</code></pre>
+
+                <div class="glass-card p-6 rounded-xl border-l-4 border-primary my-8">
+                    <h3 class="text-primary mt-0">Understanding onSnapshot()</h3>
+                    <p class="text-sm">In a traditional REST API, you must hit a refresh button or write polling
+                        intervals to check if data changed on the server. Firebase's <code>onSnapshot()</code> opens a
+                        WebSocket connection. When your fellow admin saves a new match from their phone,
+                        <code>onSnapshot()</code> immediately triggers on your computer, updating
+                        <code>this.sessions</code>, and calling <code>this.render()</code>. The UI updates instantly
+                        across all connected screens globally.
+                    </p>
+                </div>
+
+
+                <h2>3. Testing Dynamic Rendering</h2>
+                <p>If you've properly set up Firebase and added a dummy session under the <code>sessions</code>
+                    collection manually in the Firebase console, refreshing your site should instantly replace the empty
+                    `&lt;div id="match-list"&gt;` with a beautifully styled glass-card containing the match results!</p>
+            </div>
+
+            <!-- Practice Container injected by practice.js -->
+            <div id="practice-container"></div>
+
+            <!-- Page Navigation -->
+            <div class="mt-12 flex justify-between gap-4 border-t border-slate-700/50 pt-8">
+                <a href="chapter-3-firebase.html"
+                    class="flex items-center gap-4 bg-slate-800/50 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700 transition-colors group">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-primary">
+                        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <span
+                            class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Previous</span>
+                        <span class="block font-bold text-white group-hover:text-primary transition-colors">3. Firebase
+                            Setup</span>
+                    </div>
+                </a>
+
+                <a href="chapter-5-admin.html"
+                    class="flex items-center gap-4 bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700 transition-colors group text-right">
+                    <div>
+                        <span class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Next
+                            Module</span>
+                        <span class="block font-bold text-white group-hover:text-primary transition-colors">5. Admin
+                            Panel</span>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-primary">
+                        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                            </path>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+
+    <!-- Practice Quiz Script -->
+    <script src="js/practice.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => initPractice(4));
+    </script>
+</body>
+
+</html>

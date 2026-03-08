@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 5: Admin | Phase 4 FC Tutorial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-twilight.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#0ea5e9',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-50 font-sans selection:bg-primary/30 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-[60] glass-card border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg border border-white/10">
+                        <span class="text-white font-black text-xl">T</span>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">Phase 4 FC <span
+                            class="text-primary font-black">Tutorial</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-slate-400 hover:text-white transition-colors">Overview</a>
+                    <a href="chapter-1-setup.html" class="nav-link font-medium text-primary">Start Learning</a>
+                    <a href="../index.html" target="_blank"
+                        class="nav-link text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                        View Final App
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-12">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 shrink-0">
+            <div class="sticky top-24 glass-card p-6 rounded-2xl border border-slate-700/50">
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Course Modules</h3>
+                <nav class="space-y-2">
+                    <a href="index.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">0</span>
+                        Project Overview
+                    </a>
+                    <a href="chapter-1-setup.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">1</span>
+                        Project Setup
+                    </a>
+                    <a href="chapter-2-frontend.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">2</span>
+                        Frontend Structure
+                    </a>
+                    <a href="chapter-3-firebase.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">3</span>
+                        Firebase Setup
+                    </a>
+                    <a href="chapter-4-core-logic.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">4</span>
+                        Core Javascript
+                    </a>
+                    <a href="chapter-5-admin.html"
+                        class="flex items-center gap-3 p-2 rounded-xl bg-primary/10 text-primary font-bold border border-primary/20">
+                        <span
+                            class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs">5</span>
+                        Admin Panel & Auth
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0">
+            <div class="prose prose-invert prose-slate max-w-none">
+                <span
+                    class="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-black tracking-widest uppercase border border-primary/30 mb-4 inline-block">Chapter
+                    5</span>
+                <h1 class="text-4xl font-black text-white mt-0 mb-8">Admin Panel & Authentication</h1>
+
+                <p>To securely manage our club's stats, we need an Admin Panel that is protected by a login screen. We
+                    will use Firebase Authentication (Email/Password) to ensure only authorized coaches can add matches
+                    or edit player details.</p>
+
+                <h2>1. Enable Firebase Auth</h2>
+                <ol>
+                    <li>Go back to your Firebase Console.</li>
+                    <li>Click <strong>Authentication</strong> > <strong>Get Started</strong>.</li>
+                    <li>Select the <strong>Email/Password</strong> provider and enable it.</li>
+                    <li>Go to the <strong>Users</strong> tab and manually add a user (e.g.,
+                        <code>coach@phase4fc.com</code> with a strong password).
+                    </li>
+                </ol>
+
+                <h2>2. Building Admin UI and Login Modal</h2>
+                <p>Create `admin.html`. We will wrap our entire admin dashboard inside a div (`#admin-content`) that is
+                    hidden by default. We will also create a Login modal (`#admin-login-modal`) that is visible by
+                    default.</p>
+
+                <pre><code class="language-html">&lt;!-- Inside admin.html --&gt;
+&lt;main class="max-w-7xl mx-auto px-4 py-8"&gt;
+
+    &lt;!-- LOGIN MODAL (Visible by Default) --&gt;
+    &lt;div id="admin-login-modal" class="max-w-md mx-auto mt-20"&gt;
+        &lt;div class="glass-card p-8 rounded-3xl text-center shadow-2xl"&gt;
+            &lt;h2 class="text-2xl font-black text-white mb-6"&gt;CLUB ADMIN LOGIN&lt;/h2&gt;
+            &lt;input type="email" id="login-email" placeholder="Email Address" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 mb-4 text-white"&gt;
+            &lt;input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 mb-6 text-white"&gt;
+            
+            &lt;button onclick="handleLogin()" class="w-full bg-primary text-dark font-black py-4 rounded-xl hover:bg-emerald-400 transition-colors"&gt;Authenticate&lt;/button&gt;
+            &lt;div id="login-error" class="text-red-400 text-sm font-bold mt-4 hidden"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- SECURE ADMIN CONTENT (Hidden by Default) --&gt;
+    &lt;div id="admin-content" class="hidden"&gt;
+        &lt;div class="flex justify-between items-center mb-8"&gt;
+            &lt;h1 class="text-3xl font-black"&gt;Control Panel&lt;/h1&gt;
+            &lt;button onclick="handleLogout()" class="text-slate-400 hover:text-white"&gt;Sign Out&lt;/button&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- Admin Controls (Add Session Button, etc.) go here... --&gt;
+        &lt;div class="glass-card p-8 text-center"&gt;
+            &lt;h3 class="text-xl text-primary font-bold"&gt;Welcome back, Coach!&lt;/h3&gt;
+            &lt;p class="text-slate-400"&gt;You can now safely write to the database.&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+&lt;/main&gt;</code></pre>
+
+                <h2>3. Javascript Auth Logic</h2>
+                <p>We need to add authentication handling to `js/app.js`. Firebase provides a helper called
+                    <code>onAuthStateChanged</code> which acts like a listener, instantly telling us if a user is logged
+                    in or out across page reloads.
+                </p>
+
+                <pre><code class="language-javascript">// In js/app.js
+import { auth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from './firebase-config.js';
+
+// Add this to your State Object
+const State = {
+    // ... other properties
+    user: null, // Keep track of auth state
+    
+    initAuth() {
+        // This listener fires on load AND whenever login/logout happens
+        onAuthStateChanged(auth, (user) =&gt; {
+            this.user = user;
+            
+            // Grab UI elements
+            const adminContent = document.getElementById('admin-content');
+            const loginModal = document.getElementById('admin-login-modal');
+
+            // Only run UI toggles if we are currently on the admin page
+            if (window.location.pathname.includes('admin.html')) {
+                if (user) {
+                    // Logged IN
+                    if (loginModal) loginModal.classList.add('hidden');
+                    if (adminContent) adminContent.classList.remove('hidden');
+                } else {
+                    // Logged OUT
+                    if (loginModal) loginModal.classList.remove('hidden');
+                    if (adminContent) adminContent.classList.add('hidden');
+                }
+            }
+        });
+    }
+};
+
+// Global Login Function called by our HTML button
+window.handleLogin = async function() {
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-password').value;
+    const errorMsg = document.getElementById('login-error');
+    
+    try {
+        errorMsg.classList.add('hidden');
+        // Firebase handles the actual secure check!
+        await signInWithEmailAndPassword(auth, email, pass);
+        // onAuthStateChanged will automatically fire and show the dashboard!
+    } catch (error) {
+        errorMsg.textContent = "Invalid Credentials. Try again.";
+        errorMsg.classList.remove('hidden');
+    }
+}
+
+// Global Logout Function
+window.handleLogout = async function() {
+    await signOut(auth);
+}
+
+// Don't forget to call initAuth inside State.init()!
+</code></pre>
+
+                <div class="glass-card p-6 rounded-xl border-l-4 border-primary my-8 bg-emerald-500/5">
+                    <h3 class="text-primary mt-0">Security Note</h3>
+                    <p class="mb-0 text-sm">Hiding elements with CSS (<code>.hidden</code>) does not actually secure
+                        your database. A smart user could remove the hidden class using browser dev tools! True security
+                        comes from returning to the <strong>Firebase Console</strong> and changing your
+                        <strong>Firestore Rules</strong> to only allow writes if <code>request.auth != null</code>.
+                    </p>
+                </div>
+
+                <h2>Congratulations! 🎉</h2>
+                <p>You have reached the end of the foundational tutorial. You now have a complete understanding of how
+                    the frontend structure, CSS design system, Firebase integration, state management, and
+                    authentication work together to build <strong>Phase 4 FC</strong>.</p>
+
+                <p>Feel free to open the final project files <code>admin.html</code> and <code>app.js</code> to see how
+                    we implement the large "Entry Console" modal to push complex session data to our secure database.
+                </p>
+
+            </div>
+
+            <!-- Practice Container injected by practice.js -->
+            <div id="practice-container"></div>
+
+            <!-- Page Navigation -->
+            <div class="mt-12 flex justify-between gap-4 border-t border-slate-700/50 pt-8">
+                <a href="chapter-4-core-logic.html"
+                    class="flex items-center gap-4 bg-slate-800/50 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700 transition-colors group">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-primary">
+                        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <span
+                            class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Previous</span>
+                        <span class="block font-bold text-white group-hover:text-primary transition-colors">4. Core
+                            Javascript</span>
+                    </div>
+                </a>
+
+                <a href="../index.html" target="_blank"
+                    class="flex items-center gap-4 bg-primary hover:bg-emerald-400 text-dark p-4 rounded-2xl border-2 border-primary transition-colors group text-right shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)]">
+                    <div>
+                        <span
+                            class="block text-[10px] font-black uppercase text-dark/70 tracking-widest mb-1">Completion</span>
+                        <span class="block font-bold text-dark group-hover:text-dark transition-colors">View Final Live
+                            App</span>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-dark/10 flex items-center justify-center text-dark group-hover:text-dark">
+                        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-html.min.js"></script>
+
+    <!-- Practice Quiz Script -->
+    <script src="js/practice.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => initPractice(5));
+    </script>
+</body>
+
+</html>

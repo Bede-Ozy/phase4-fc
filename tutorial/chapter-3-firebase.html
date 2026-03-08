@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chapter 3: Firebase | Phase 4 FC Tutorial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-twilight.min.css" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10b981',
+                        secondary: '#0ea5e9',
+                        accent: '#f59e0b',
+                        dark: '#0f172a',
+                        card: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-dark text-slate-50 font-sans selection:bg-primary/30 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-[60] glass-card border-b border-slate-700/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg border border-white/10">
+                        <span class="text-white font-black text-xl">T</span>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">Phase 4 FC <span
+                            class="text-primary font-black">Tutorial</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="index.html" class="nav-link text-slate-400 hover:text-white transition-colors">Overview</a>
+                    <a href="chapter-1-setup.html" class="nav-link font-medium text-primary">Start Learning</a>
+                    <a href="../index.html" target="_blank"
+                        class="nav-link text-slate-400 hover:text-white transition-colors flex items-center gap-2">
+                        View Final App
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-12">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 shrink-0">
+            <div class="sticky top-24 glass-card p-6 rounded-2xl border border-slate-700/50">
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Course Modules</h3>
+                <nav class="space-y-2">
+                    <a href="index.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">0</span>
+                        Project Overview
+                    </a>
+                    <a href="chapter-1-setup.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">1</span>
+                        Project Setup
+                    </a>
+                    <a href="chapter-2-frontend.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">2</span>
+                        Frontend Structure
+                    </a>
+                    <a href="chapter-3-firebase.html"
+                        class="flex items-center gap-3 p-2 rounded-xl bg-primary/10 text-primary font-bold border border-primary/20">
+                        <span
+                            class="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs">3</span>
+                        Firebase Setup
+                    </a>
+                    <a href="chapter-4-core-logic.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">4</span>
+                        Core Javascript
+                    </a>
+                    <a href="chapter-5-admin.html"
+                        class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 text-slate-300 font-medium transition-colors group">
+                        <span
+                            class="w-6 h-6 rounded-full bg-slate-800 group-hover:bg-slate-700 flex items-center justify-center text-xs">5</span>
+                        Admin Panel & Auth
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0">
+            <div class="prose prose-invert prose-slate max-w-none">
+                <span
+                    class="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-black tracking-widest uppercase border border-primary/30 mb-4 inline-block">Chapter
+                    3</span>
+                <h1 class="text-4xl font-black text-white mt-0 mb-8">Firebase configuration & Realtime Data</h1>
+
+                <p>A sports analytics app is useless without data. We will use Google Firebase to provide a realtime
+                    NoSQL database (Firestore) and authentication for our Admin Panel. This chapter walks you through
+                    connecting your frontend to a Firebase backend.</p>
+
+                <h2>1. Setting up the Firebase Project</h2>
+                <ol>
+                    <li>Go to the <a href="https://console.firebase.google.com/" target="_blank"
+                            class="text-primary hover:underline">Firebase Console</a>.</li>
+                    <li>Click <strong>Add project</strong> and name it something like <code>Phase4FC-App</code>.</li>
+                    <li>Disable Google Analytics for now.</li>
+                    <li>Once created, click the <strong>Web &lt;/&gt;</strong> icon to register your app. Keep the
+                        default settings and click <strong>Register App</strong>.</li>
+                </ol>
+
+                <p>Firebase will provide you with a configuration object that looks like this:
+                    <code>const firebaseConfig = { apiKey: "...", ... }</code>. Copy this code block!
+                </p>
+
+                <h2>2. Initializing Firebase Configuration</h2>
+                <p>In our `js` folder, we created a file called <code>firebase-config.js</code>. This acts as our bridge
+                    to the backend database. Paste your config object into this file along with the necessary module
+                    imports.</p>
+                <p>Open <code>js/firebase-config.js</code> and add:</p>
+
+                <pre><code class="language-javascript">// Import the core Firebase App module
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+
+// Import Optional Firebase services (Firestore for data, Auth for login)
+import { 
+    getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy
+} from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+import { 
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+// !!! REPLACE THIS WITH YOUR CONFIG OBJECT FROM STEP 1 !!!
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "phase4fc-app.firebaseapp.com",
+    projectId: "phase4fc-app",
+    storageBucket: "phase4fc-app.firebasestorage.app",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef123456"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+
+// Initialize Cloud Firestore and get a reference to the service
+const db = getFirestore(app);
+
+// Initialize Firebase Authentication
+const auth = getAuth(app);
+
+// Export these functions and variables so we can use them in app.js
+export { 
+    app, db, auth, 
+    collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy,
+    signInWithEmailAndPassword, onAuthStateChanged, signOut
+};</code></pre>
+
+                <div class="glass-card p-6 rounded-xl border-l-4 border-secondary my-8">
+                    <h3 class="text-secondary mt-0">Why the CDN Links?</h3>
+                    <p class="mb-0 text-sm">Since we aren't using a bundler like Webpack or Vite, we import Firebase
+                        modules directly via CDN links (e.g. <code>https://www.gstatic.com/...</code>). This keeps our
+                        project simple and runnable directly in the browser.</p>
+                </div>
+
+                <h2>3. Setting up Firestore Database Rules</h2>
+                <p>Before our app can read data, we need to create the database.</p>
+                <ol>
+                    <li>In the Firebase Console menu (left sidebar), click <strong>Firestore Database</strong> under
+                        Build.</li>
+                    <li>Click <strong>Create database</strong>. Start in <strong>Test mode</strong> to allow our app to
+                        read and write without logging in right away. Click Next, choose a location, and click Enable.
+                    </li>
+                </ol>
+
+                <div class="glass-card p-6 rounded-xl border-l-4 border-accent my-8 bg-amber-500/10">
+                    <h4 class="text-accent mt-0 flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                        Security Warning
+                    </h4>
+                    <p class="mb-0 text-sm text-amber-200">Test mode leaves your database completely open to the public
+                        for 30 days. In Chapter 5, we will implement Firebase Auth to lock down write permissions.</p>
+                </div>
+
+                <h3>Data Collections Needed</h3>
+                <p>For Phase 4 FC, we will use two primary collections (think of these as tables in a SQL database):</p>
+                <ul>
+                    <li><code>players</code>: Stores player names, positions, and aggregate stats.</li>
+                    <li><code>sessions</code>: Stores individual match/training session data including scores,
+                        locations, and individual player performance for that specific day.</li>
+                </ul>
+
+                <p>You can manually add a dummy player directly in the Firebase console for now simply to test that it
+                    works in the next chapter!</p>
+            </div>
+
+            <!-- Practice Container injected by practice.js -->
+            <div id="practice-container"></div>
+
+            <!-- Page Navigation -->
+            <div class="mt-12 flex justify-between gap-4 border-t border-slate-700/50 pt-8">
+                <a href="chapter-2-frontend.html"
+                    class="flex items-center gap-4 bg-slate-800/50 hover:bg-slate-800 p-4 rounded-2xl border border-slate-700 transition-colors group">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-primary">
+                        <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <span
+                            class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Previous</span>
+                        <span class="block font-bold text-white group-hover:text-primary transition-colors">2. Frontend
+                            Setup</span>
+                    </div>
+                </a>
+
+                <a href="chapter-4-core-logic.html"
+                    class="flex items-center gap-4 bg-slate-800 hover:bg-slate-700 p-4 rounded-2xl border border-slate-700 transition-colors group text-right">
+                    <div>
+                        <span class="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Next
+                            Module</span>
+                        <span class="block font-bold text-white group-hover:text-primary transition-colors">4. Core
+                            Javascript</span>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-primary">
+                        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                            </path>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+
+    <!-- Practice Quiz Script -->
+    <script src="js/practice.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => initPractice(3));
+    </script>
+</body>
+
+</html>

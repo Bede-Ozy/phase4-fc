@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
+}
+
+/* Glassmorphism Utilities */
+.glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Prose customizations for Markdown-like content */
+.prose {
+    color: #cbd5e1;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+    color: #f8fafc;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.prose h2 {
+    font-size: 1.875rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+    padding-bottom: 0.5rem;
+}
+
+.prose h3 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: #e2e8f0;
+}
+
+.prose p {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.75;
+}
+
+.prose ul {
+    list-style-type: disc;
+    padding-left: 1.625em;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.prose li {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.prose strong {
+    color: #f8fafc;
+    font-weight: 700;
+}
+
+/* Code Block Customizations */
+pre[class*="language-"] {
+    background: #0f172a !important;
+    /* Very dark blue for terminal feel */
+    border: 1px solid #334155;
+    border-radius: 0.75rem;
+    padding: 1.5rem !important;
+    margin: 1.5rem 0 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace !important;
+    font-size: 0.9rem !important;
+    line-height: 1.6 !important;
+    text-shadow: none !important;
+}
+
+.prose :not(pre)>code {
+    background: #1e293b;
+    color: #38bdf8;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+    font-family: Consolas, Monaco, monospace;
+    border: 1px solid #334155;
+}
