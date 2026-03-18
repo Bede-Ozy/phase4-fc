@@ -16,11 +16,11 @@ const Analytics = {
                 yellowCards: 0,
                 redCards: 0,
                 ownGoals: 0,
-                appearances: 0,
                 totalPoints: 0,
                 position: p.position || 'Midfielder',
                 starts: 0,
                 subs: 0,
+                cleanSheets: 0,
                 attendancePoints: 0,
                 attendedDates: [],
                 breakdown: { attendance: 0, goals: 0, assists: 0, cleanSheets: 0, deductions: 0 }
@@ -39,7 +39,7 @@ const Analytics = {
                         stats[name].redCards += playerData.red || 0;
                         stats[name].ownGoals += playerData.ownGoals || 0;
                         stats[name].appearances += 1;
-                        stats[name].attendedDates.push(session.date);
+                        stats[name].attendedDates.push({ date: session.date, role: playerData.role || 'starter' });
 
                         let sessionPoints = 0;
 
@@ -90,6 +90,7 @@ const Analytics = {
                         const opponent = session.teams.find(t => t.name !== team.name);
                         let cs = 0;
                         if (opponent && opponent.score === 0) {
+                            stats[name].cleanSheets += 1;
                             if (pos.includes('goal') || pos === 'gk') {
                                 cs = 4;
                             } else if (pos.includes('defender')) {

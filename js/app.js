@@ -752,11 +752,20 @@ window.openPlayerTrackerModal = function(playerId) {
                 <div class="flex gap-1.5">
                     ${saturdaysByMonth[month].map(dateStr => {
                         const satTime = new Date(dateStr).getTime();
-                        const didAttend = p.attendedDates && p.attendedDates.some(ad => {
-                            const t = new Date(ad).getTime();
-                            return Math.abs(t - satTime) <= 3 * 24 * 60 * 60 * 1000;
-                        });
-                        return '<div class="w-4 h-4 rounded-sm flex-shrink-0 ' + (didAttend ? 'bg-secondary shadow-[0_0_8px_rgba(14,165,233,0.5)]' : 'bg-slate-800') + '" title="' + dateStr + (didAttend ? ' - Present' : '') + '"></div>';
+                        let didAttend = false;
+                        let isSub = false;
+                        if (p.attendedDates) {
+                            const match = p.attendedDates.find(ad => {
+                                const t = new Date(ad.date || ad).getTime();
+                                return Math.abs(t - satTime) <= 3 * 24 * 60 * 60 * 1000;
+                            });
+                            if (match) {
+                                didAttend = true;
+                                isSub = match.role === 'sub';
+                            }
+                        }
+                        const dotColor = didAttend ? (isSub ? 'bg-secondary/40 shadow-[0_0_8px_rgba(14,165,233,0.3)]' : 'bg-secondary shadow-[0_0_8px_rgba(14,165,233,0.5)]') : 'bg-slate-800';
+                        return '<div class="w-4 h-4 rounded-sm flex-shrink-0 ' + dotColor + '" title="' + dateStr + (didAttend ? (isSub ? ' - Sub' : ' - Started') : '') + '"></div>';
                     }).join('')}
                 </div>
             </div>`;
@@ -785,7 +794,7 @@ window.openPlayerTrackerModal = function(playerId) {
             <div class="mb-8">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Availability Horizon (${year})</h3>
                 <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-500 mb-4">Saturdays tracked across the year. <span class="text-secondary font-bold">Blue</span> implies presence in a match or training session nearby.</p>
+                    <p class="text-[10px] text-slate-500 mb-4">Saturdays tracked across the year. <span class="text-secondary font-bold">Dark Blue</span> implies started. <span class="text-secondary/60 font-bold">Light Blue</span> implies substituted.</p>
                     ${calendarHTML}
                 </div>
             </div>
@@ -794,23 +803,23 @@ window.openPlayerTrackerModal = function(playerId) {
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Points Breakdown Logic</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
-                        <span class="text-slate-400 text-sm font-bold">Attendance Base</span>
+                        <span class="text-slate-400 text-sm font-bold">Attendance Base <br><span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Start (${p.starts}) · Sub (${p.subs})</span></span>
                         <span class="text-white font-black text-xl">${p.breakdown.attendance}</span>
                     </div>
                     <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
-                        <span class="text-slate-400 text-sm font-bold">Goals (${p.goals})</span>
+                        <span class="text-slate-400 text-sm font-bold">Goals <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">(${p.goals})</span></span>
                         <span class="text-primary font-black text-xl">+${p.breakdown.goals}</span>
                     </div>
                     <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
-                        <span class="text-slate-400 text-sm font-bold">Assists (${p.assists})</span>
+                        <span class="text-slate-400 text-sm font-bold">Assists <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">(${p.assists})</span></span>
                         <span class="text-secondary font-black text-xl">+${p.breakdown.assists}</span>
                     </div>
                     <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
-                        <span class="text-slate-400 text-sm font-bold">Clean Sheets</span>
+                        <span class="text-slate-400 text-sm font-bold">Clean Sheets <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">(${p.cleanSheets || 0})</span></span>
                         <span class="text-white font-black text-xl">+${p.breakdown.cleanSheets}</span>
                     </div>
                     <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
-                        <span class="text-slate-400 text-sm font-bold">Card Deductions</span>
+                        <span class="text-slate-400 text-sm font-bold">Card Deductions <br><span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Yel (${p.yellowCards || 0}) · Red (${p.redCards || 0})</span></span>
                         <span class="text-red-400 font-black text-xl">${p.breakdown.deductions}</span>
                     </div>
                     <div class="bg-primary/10 p-4 rounded-xl flex justify-between items-center border border-primary/20">
