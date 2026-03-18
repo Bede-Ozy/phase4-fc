@@ -21,7 +21,9 @@ const Analytics = {
                 position: p.position || 'Midfielder',
                 starts: 0,
                 subs: 0,
-                attendancePoints: 0
+                attendancePoints: 0,
+                attendedDates: [],
+                breakdown: { attendance: 0, goals: 0, assists: 0, cleanSheets: 0, deductions: 0 }
             };
         });
 
@@ -37,6 +39,7 @@ const Analytics = {
                         stats[name].redCards += playerData.red || 0;
                         stats[name].ownGoals += playerData.ownGoals || 0;
                         stats[name].appearances += 1;
+                        stats[name].attendedDates.push(session.date);
 
                         let sessionPoints = 0;
 
@@ -53,6 +56,7 @@ const Analytics = {
 
                         stats[name].attendancePoints += weight;
                         sessionPoints += weight;
+                        stats[name].breakdown.attendance += weight;
 
                         const pos = (stats[name].position || '').toLowerCase();
                         const goals = playerData.goals || 0;
@@ -60,38 +64,47 @@ const Analytics = {
                         const yellow = playerData.yellow || 0;
                         const red = playerData.red || 0;
 
+                        let gp = 0;
+                        let ap = 0;
                         // Goal points by position
                         if (pos.includes('goal') || pos === 'gk') {
-                            sessionPoints += (goals * 5);
-                            sessionPoints += (assists * 3);
+                            gp = (goals * 5);
+                            ap = (assists * 3);
                         } else if (pos.includes('defender')) {
-                            sessionPoints += (goals * 3);
-                            sessionPoints += (assists * 3);
+                            gp = (goals * 3);
+                            ap = (assists * 3);
                         } else if (pos.includes('midfield')) {
-                            sessionPoints += (goals * 2);
-                            sessionPoints += (assists * 2);
+                            gp = (goals * 2);
+                            ap = (assists * 2);
                         } else { // Forwards
-                            sessionPoints += (goals * 2);
-                            sessionPoints += (assists * 1);
+                            gp = (goals * 2);
+                            ap = (assists * 1);
                         }
+                        sessionPoints += gp + ap;
+                        stats[name].breakdown.goals += gp;
+                        stats[name].breakdown.assists += ap;
 
                         // Clean Sheet Bonus (Team conceded 0 goals)
                         // Verify clean sheet by checking the OPPONENT's score
                         // The 'team' object has 'score'. We need to find the OTHER team in the session.
                         const opponent = session.teams.find(t => t.name !== team.name);
+                        let cs = 0;
                         if (opponent && opponent.score === 0) {
                             if (pos.includes('goal') || pos === 'gk') {
-                                sessionPoints += 4;
+                                cs = 4;
                             } else if (pos.includes('defender')) {
-                                sessionPoints += 3;
+                                cs = 3;
                             } else {
-                                sessionPoints += 2;
+                                cs = 2;
                             }
                         }
+                        sessionPoints += cs;
+                        stats[name].breakdown.cleanSheets += cs;
 
                         // Card deductions
-                        sessionPoints -= (yellow * 2);
-                        sessionPoints -= (red * 4);
+                        let deductions = (yellow * 2) + (red * 4);
+                        sessionPoints -= deductions;
+                        stats[name].breakdown.deductions -= deductions;
 
                         stats[name].totalPoints += sessionPoints;
                     }

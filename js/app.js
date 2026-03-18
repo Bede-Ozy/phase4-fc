@@ -142,6 +142,10 @@ const State = {
     },
 
     getSessionCardHTML(s) {
+        const isAway = (s.location || '').toLowerCase().trim() === 'away' || (s.teams[1] && s.teams[1].name.toLowerCase().includes('phase 4') && s.teams[0] && !s.teams[0].name.toLowerCase().includes('phase 4'));
+        const t1 = isAway ? s.teams[1] : s.teams[0];
+        const t2 = isAway ? s.teams[0] : s.teams[1];
+
         return `
             <div class="glass-card overflow-hidden rounded-3xl border border-slate-700 hover:border-primary/30 transition-all group">
                 <div class="p-4 sm:p-6">
@@ -157,6 +161,7 @@ const State = {
                                     </div>
                                 </div>
                                 <span class="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-black rounded uppercase tracking-widest border border-primary/20">${s.type}</span>
+                                ${s.type === 'match' ? `<span class="px-2 py-0.5 bg-secondary/10 text-secondary text-[9px] font-black rounded uppercase tracking-widest border border-secondary/20">${s.location || 'home'}</span>` : ''}
                             </div>
                             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight text-right">Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}</div>
                         </div>
@@ -164,26 +169,26 @@ const State = {
                         <!-- Teams and Score aligned horizontally -->
                         <div class="flex items-center justify-between gap-4 py-4 bg-slate-900/50 rounded-2xl px-4 border border-slate-700/50">
                             <div class="flex-1 flex items-center gap-3">
-                                ${this.getTeamFlag(s.teams[0].name)}
-                                <h4 class="text-base sm:text-xl font-bold truncate">${s.teams[0].name}</h4>
+                                ${this.getTeamFlag(t1.name)}
+                                <h4 class="text-base sm:text-xl font-bold truncate">${t1.name}</h4>
                             </div>
                             
                             <div class="flex items-center gap-3 sm:gap-6 px-4 sm:px-8 py-2 bg-slate-900 rounded-xl border border-slate-700 shrink-0 shadow-inner">
-                                <span class="text-2xl sm:text-3xl font-black text-primary">${s.teams[0].score}</span>
+                                <span class="text-2xl sm:text-3xl font-black text-primary">${t1.score}</span>
                                 <span class="text-slate-600 font-bold text-xs">VS</span>
-                                <span class="text-2xl sm:text-3xl font-black text-primary">${s.teams[1].score}</span>
+                                <span class="text-2xl sm:text-3xl font-black text-primary">${t2.score}</span>
                             </div>
 
                             <div class="flex-1 flex items-center justify-end gap-3 text-right">
-                                <h4 class="text-base sm:text-xl font-bold truncate">${s.teams[1].name}</h4>
-                                ${this.getTeamFlag(s.teams[1].name)}
+                                <h4 class="text-base sm:text-xl font-bold truncate">${t2.name}</h4>
+                                ${this.getTeamFlag(t2.name)}
                             </div>
                         </div>
                     </div>
                     <div class="mt-8 pt-6 border-t border-slate-700/50">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div><h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[0].name} Lineup & Contributions</h5><div class="flex flex-wrap gap-2">${this.renderExpandedPlayers(s.teams[0])}</div></div>
-                            <div class="md:text-right"><h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${s.teams[1].name} Lineup & Contributions</h5><div class="flex flex-wrap gap-2 md:justify-end">${this.renderExpandedPlayers(s.teams[1])}</div></div>
+                            <div><h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${t1.name} Lineup & Contributions</h5><div class="flex flex-wrap gap-2">${this.renderExpandedPlayers(t1)}</div></div>
+                            <div class="md:text-right"><h5 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">${t2.name} Lineup & Contributions</h5><div class="flex flex-wrap gap-2 md:justify-end">${this.renderExpandedPlayers(t2)}</div></div>
                         </div>
                     </div>
                 </div>
@@ -200,6 +205,10 @@ const State = {
         const sorted = [...this.sessions].sort((a, b) => new Date(a.date) - new Date(b.date));
         const latest = sorted[sorted.length - 1];
 
+        const isAway = (latest.location || '').toLowerCase().trim() === 'away' || (latest.teams[1] && latest.teams[1].name.toLowerCase().includes('phase 4') && latest.teams[0] && !latest.teams[0].name.toLowerCase().includes('phase 4'));
+        const t1 = isAway ? latest.teams[1] : latest.teams[0];
+        const t2 = isAway ? latest.teams[0] : latest.teams[1];
+
         container.innerHTML = `
             <div class="glass-card rounded-3xl overflow-hidden relative border border-slate-700">
                 <div class="p-6 md:p-8">
@@ -208,6 +217,7 @@ const State = {
                         <div class="text-left">
                             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mb-1">${new Date(latest.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
                             <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded uppercase tracking-widest border border-primary/20">${latest.type}</span>
+                            ${latest.type === 'match' ? `<span class="ml-2 px-2 py-0.5 bg-secondary/10 text-secondary text-[10px] font-black rounded uppercase tracking-widest border border-secondary/20">${latest.location || 'home'}</span>` : ''}
                         </div>
                         <div class="text-[10px] text-slate-600 font-black uppercase tracking-tighter">Latest Session</div>
                     </div>
@@ -216,10 +226,10 @@ const State = {
                     <div class="flex items-center justify-between gap-2 sm:gap-6 py-8 bg-slate-900/50 rounded-2xl px-4 sm:px-8 border border-slate-700/50">
                         <div class="flex-1 flex flex-col items-center md:items-end text-center md:text-right">
                             <div class="flex items-center gap-2 mb-2">
-                                ${this.getTeamFlag(latest.teams[0].name)}
-                                <h4 class="text-slate-400 text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-none">${latest.teams[0].name}</h4>
+                                ${this.getTeamFlag(t1.name)}
+                                <h4 class="text-slate-400 text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-none">${t1.name}</h4>
                             </div>
-                            <div class="text-4xl sm:text-6xl font-black">${latest.teams[0].score}</div>
+                            <div class="text-4xl sm:text-6xl font-black">${t1.score}</div>
                         </div>
 
                         <div class="px-4 sm:px-6 py-2 bg-slate-800 rounded-xl border border-slate-700 shrink-0 shadow-inner">
@@ -228,10 +238,10 @@ const State = {
 
                         <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
                             <div class="flex items-center gap-2 mb-2">
-                                <h4 class="text-slate-400 text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-none">${latest.teams[1].name}</h4>
-                                ${this.getTeamFlag(latest.teams[1].name)}
+                                <h4 class="text-slate-400 text-[10px] sm:text-xs font-black uppercase truncate max-w-[80px] sm:max-w-none">${t2.name}</h4>
+                                ${this.getTeamFlag(t2.name)}
                             </div>
-                            <div class="text-4xl sm:text-6xl font-black">${latest.teams[1].score}</div>
+                            <div class="text-4xl sm:text-6xl font-black">${t2.score}</div>
                         </div>
                     </div>
                     <div class="mt-8 flex justify-center">
@@ -243,8 +253,8 @@ const State = {
                 </div>
                 <div id="hero-lineups" class="${this.isHeroExpanded ? 'block' : 'hidden'} border-t border-slate-700 bg-slate-900/50 animate-in slide-in-from-top duration-300">
                     <div class="grid grid-cols-2 gap-0 divide-x divide-slate-700">
-                        <div class="p-6 md:p-8"><div class="space-y-2">${this.renderExpandedPlayers(latest.teams[0])}</div></div>
-                        <div class="p-6 md:p-8 text-right"><div class="space-y-2">${this.renderExpandedPlayers(latest.teams[1])}</div></div>
+                        <div class="p-6 md:p-8"><div class="space-y-2">${this.renderExpandedPlayers(t1)}</div></div>
+                        <div class="p-6 md:p-8 text-right"><div class="space-y-2">${this.renderExpandedPlayers(t2)}</div></div>
                     </div>
                 </div>
             </div>`;
@@ -307,33 +317,39 @@ const State = {
         const container = document.getElementById('match-list');
         if (!container || this.sessions.length === 0) return;
         const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
-        container.innerHTML = sorted.map(s => `
+        container.innerHTML = sorted.map(s => {
+            const isAway = (s.location || '').toLowerCase().trim() === 'away' || (s.teams[1] && s.teams[1].name.toLowerCase().includes('phase 4') && s.teams[0] && !s.teams[0].name.toLowerCase().includes('phase 4'));
+            const t1 = isAway ? s.teams[1] : s.teams[0];
+            const t2 = isAway ? s.teams[0] : s.teams[1];
+            return `
             <div class="glass-card p-3 rounded-2xl flex flex-col gap-3 border border-transparent hover:border-slate-700 transition-all cursor-default">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                         <span class="w-1.5 h-[1px] bg-slate-700"></span>
                         <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type}</div>
+                        ${s.type === 'match' ? `<span class="w-1.5 h-[1px] bg-slate-700"></span><div class="text-[9px] font-black text-secondary uppercase tracking-widest">${s.location || 'home'}</div>` : ''}
                     </div>
                 </div>
                 <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-xl border border-slate-700/30">
                     <div class="flex items-center gap-2 flex-1">
-                        ${this.getTeamFlag(s.teams[0].name)}
-                        <span class="font-bold text-sm truncate">${s.teams[0].name}</span>
+                        ${this.getTeamFlag(t1.name)}
+                        <span class="font-bold text-sm truncate">${t1.name}</span>
                     </div>
                     
                     <div class="flex items-center gap-4 px-4 py-1.5 bg-slate-900 rounded-lg border border-slate-700 mx-2 shrink-0">
-                        <span class="text-xl font-black text-primary">${s.teams[0].score}</span>
+                        <span class="text-xl font-black text-primary">${t1.score}</span>
                         <span class="text-[10px] font-bold text-slate-600">vs</span>
-                        <span class="text-xl font-black text-primary">${s.teams[1].score}</span>
+                        <span class="text-xl font-black text-primary">${t2.score}</span>
                     </div>
 
                     <div class="flex items-center justify-end gap-2 flex-1 text-right">
-                        <span class="font-bold text-sm truncate">${s.teams[1].name}</span>
-                        ${this.getTeamFlag(s.teams[1].name)}
+                        <span class="font-bold text-sm truncate">${t2.name}</span>
+                        ${this.getTeamFlag(t2.name)}
                     </div>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     },
 
     renderLeaderboard() {
@@ -390,6 +406,7 @@ const State = {
                     <div class="bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30"><div class="text-white font-black text-lg">${p.appearances}</div><div class="text-[8px] font-black text-slate-500 uppercase">Apps 🏟️</div></div>
                     <div class="flex gap-1.5 items-center justify-center bg-slate-900/50 p-3 rounded-2xl border border-slate-700/30"><div class="flex gap-0.5"><span class="${p.yellowCards > 0 ? 'opacity-100' : 'opacity-20'}">🟨</span><span class="${p.redCards > 0 ? 'opacity-100' : 'opacity-20'}">🟥</span></div><div class="text-[8px] font-black text-slate-500 uppercase">Cards</div></div>
                 </div>
+                <button onclick="openPlayerTrackerModal('${p.id}')" class="w-full py-3 bg-secondary/10 border border-secondary/30 rounded-xl text-xs font-black uppercase tracking-widest text-secondary hover:bg-secondary/20 transition-all flex items-center justify-center gap-2" title="Track Performance & Points Breakdown">TRACK 📊</button>
             </div>`).join('');
     },
 
@@ -401,13 +418,18 @@ const State = {
             return;
         }
         const sorted = [...this.sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
-        container.innerHTML = `<div class="space-y-3 text-slate-50">${sorted.map(s => `
+        container.innerHTML = `<div class="space-y-3 text-slate-50">${sorted.map(s => {
+            const isAway = (s.location || '').toLowerCase().trim() === 'away' || (s.teams[1] && s.teams[1].name.toLowerCase().includes('phase 4') && s.teams[0] && !s.teams[0].name.toLowerCase().includes('phase 4'));
+            const t1 = isAway ? s.teams[1] : s.teams[0];
+            const t2 = isAway ? s.teams[0] : s.teams[1];
+            return `
             <div class="glass-card p-3 rounded-2xl flex flex-col gap-3 border border-slate-800 hover:border-slate-700 transition-all group">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                         <span class="w-1.5 h-[1px] bg-slate-700"></span>
                         <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type}</div>
+                        ${s.type === 'match' ? `<span class="w-1.5 h-[1px] bg-slate-700"></span><div class="text-[9px] font-black text-secondary uppercase tracking-widest">${s.location || 'home'}</div>` : ''}
                     </div>
                     <div class="flex items-center gap-1">
                         <button onclick="editSession('${s.id}')" class="text-slate-500 hover:text-primary p-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
@@ -417,22 +439,23 @@ const State = {
                 
                 <div class="flex items-center justify-between bg-slate-900/50 p-3 rounded-xl border border-slate-700/50">
                     <div class="flex-1 flex items-center gap-2 truncate">
-                        ${this.getTeamFlag(s.teams[0].name)}
-                        <span class="font-bold text-sm truncate uppercase tracking-tight">${s.teams[0].name}</span>
+                        ${this.getTeamFlag(t1.name)}
+                        <span class="font-bold text-sm truncate uppercase tracking-tight">${t1.name}</span>
                     </div>
                     
                     <div class="flex items-center gap-3 px-3 py-1 bg-slate-900 rounded-lg border border-slate-700 shrink-0 shadow-inner mx-2">
-                        <span class="text-xl font-black text-primary">${s.teams[0].score}</span>
+                        <span class="text-xl font-black text-primary">${t1.score}</span>
                         <span class="text-[9px] font-bold text-slate-600">VS</span>
-                        <span class="text-xl font-black text-primary">${s.teams[1].score}</span>
+                        <span class="text-xl font-black text-primary">${t2.score}</span>
                     </div>
 
                     <div class="flex-1 flex items-center justify-end gap-2 text-right truncate">
-                        <span class="font-bold text-sm truncate uppercase tracking-tight">${s.teams[1].name}</span>
-                        ${this.getTeamFlag(s.teams[1].name)}
+                        <span class="font-bold text-sm truncate uppercase tracking-tight">${t2.name}</span>
+                        ${this.getTeamFlag(t2.name)}
                     </div>
                 </div>
-            </div>`).join('')}</div>`;
+            </div>`;
+        }).join('')}</div>`;
     }
 };
 
@@ -703,6 +726,102 @@ window.removePlayerFromTeam = function (teamIndex, idx) {
     renderSessionModal();
 }
 // window.updatePlayerStat is defined above
+window.openPlayerTrackerModal = function(playerId) {
+    if (!window.Analytics) return;
+    const p = Analytics.getPlayerStats(State.sessions, State.players).find(x => x.id === playerId);
+    if (!p) return;
+    
+    const year = new Date().getFullYear();
+    const startDate = new Date(year, 0, 1);
+    const endDate = new Date(year, 11, 31);
+    
+    const saturdaysByMonth = {};
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        if (d.getDay() === 6) {
+            const month = d.toLocaleString('default', { month: 'short' });
+            if (!saturdaysByMonth[month]) saturdaysByMonth[month] = [];
+            saturdaysByMonth[month].push(d.toISOString().split('T')[0]);
+        }
+    }
+
+    let calendarHTML = '<div class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">';
+    Object.keys(saturdaysByMonth).forEach(month => {
+        calendarHTML += `
+            <div class="flex-shrink-0 flex flex-col gap-2">
+                <span class="text-[10px] text-slate-500 font-bold uppercase">${month}</span>
+                <div class="flex gap-1.5">
+                    ${saturdaysByMonth[month].map(dateStr => {
+                        const satTime = new Date(dateStr).getTime();
+                        const didAttend = p.attendedDates && p.attendedDates.some(ad => {
+                            const t = new Date(ad).getTime();
+                            return Math.abs(t - satTime) <= 3 * 24 * 60 * 60 * 1000;
+                        });
+                        return '<div class="w-4 h-4 rounded-sm flex-shrink-0 ' + (didAttend ? 'bg-secondary shadow-[0_0_8px_rgba(14,165,233,0.5)]' : 'bg-slate-800') + '" title="' + dateStr + (didAttend ? ' - Present' : '') + '"></div>';
+                    }).join('')}
+                </div>
+            </div>`;
+    });
+    calendarHTML += '</div>';
+
+    let overlay = document.getElementById('modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4';
+        document.body.appendChild(overlay);
+    }
+    overlay.classList.remove('hidden');
+    
+    overlay.innerHTML = `
+        <div id="session-modal-content" class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-[2rem] p-6 md:p-10 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-black uppercase tracking-tight text-white">${p.name}</h2>
+                    <p class="text-slate-500 text-sm font-medium mt-1">${p.position} • Performance Tracker</p>
+                </div>
+                <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition-all">✕</button>
+            </div>
+            
+            <div class="mb-8">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Availability Horizon (${year})</h3>
+                <div class="bg-slate-900/50 p-6 rounded-2xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-500 mb-4">Saturdays tracked across the year. <span class="text-secondary font-bold">Blue</span> implies presence in a match or training session nearby.</p>
+                    ${calendarHTML}
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Points Breakdown Logic</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
+                        <span class="text-slate-400 text-sm font-bold">Attendance Base</span>
+                        <span class="text-white font-black text-xl">${p.breakdown.attendance}</span>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
+                        <span class="text-slate-400 text-sm font-bold">Goals (${p.goals})</span>
+                        <span class="text-primary font-black text-xl">+${p.breakdown.goals}</span>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
+                        <span class="text-slate-400 text-sm font-bold">Assists (${p.assists})</span>
+                        <span class="text-secondary font-black text-xl">+${p.breakdown.assists}</span>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
+                        <span class="text-slate-400 text-sm font-bold">Clean Sheets</span>
+                        <span class="text-white font-black text-xl">+${p.breakdown.cleanSheets}</span>
+                    </div>
+                    <div class="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700">
+                        <span class="text-slate-400 text-sm font-bold">Card Deductions</span>
+                        <span class="text-red-400 font-black text-xl">${p.breakdown.deductions}</span>
+                    </div>
+                    <div class="bg-primary/10 p-4 rounded-xl flex justify-between items-center border border-primary/20">
+                        <span class="text-primary text-sm font-bold uppercase tracking-widest">Total Earned</span>
+                        <span class="text-primary font-black text-2xl">${p.totalPoints}</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+}
+
 window.closeModal = function () { document.getElementById('modal-overlay').classList.add('hidden'); currentDraft = null; }
 window.saveSession = async function () {
     if (!currentDraft) return;
