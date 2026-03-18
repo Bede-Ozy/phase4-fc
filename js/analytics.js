@@ -16,6 +16,7 @@ const Analytics = {
                 yellowCards: 0,
                 redCards: 0,
                 ownGoals: 0,
+                appearances: 0,
                 totalPoints: 0,
                 position: p.position || 'Midfielder',
                 starts: 0,
