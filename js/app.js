@@ -726,15 +726,15 @@ window.removePlayerFromTeam = function (teamIndex, idx) {
     renderSessionModal();
 }
 // window.updatePlayerStat is defined above
-window.openPlayerTrackerModal = function(playerId) {
+window.openPlayerTrackerModal = function (playerId) {
     if (!window.Analytics) return;
     const p = Analytics.getPlayerStats(State.sessions, State.players).find(x => x.id === playerId);
     if (!p) return;
-    
+
     const year = new Date().getFullYear();
     const startDate = new Date(year, 0, 1);
     const endDate = new Date(year, 11, 31);
-    
+
     const saturdaysByMonth = {};
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         if (d.getDay() === 6) {
@@ -751,22 +751,22 @@ window.openPlayerTrackerModal = function(playerId) {
                 <span class="text-[10px] text-slate-500 font-bold uppercase">${month}</span>
                 <div class="flex gap-1.5">
                     ${saturdaysByMonth[month].map(dateStr => {
-                        const satTime = new Date(dateStr).getTime();
-                        let didAttend = false;
-                        let isSub = false;
-                        if (p.attendedDates) {
-                            const match = p.attendedDates.find(ad => {
-                                const t = new Date(ad.date || ad).getTime();
-                                return Math.abs(t - satTime) <= 3 * 24 * 60 * 60 * 1000;
-                            });
-                            if (match) {
-                                didAttend = true;
-                                isSub = match.role === 'sub';
-                            }
-                        }
-                        const dotColor = didAttend ? (isSub ? 'bg-secondary/40 shadow-[0_0_8px_rgba(14,165,233,0.3)]' : 'bg-secondary shadow-[0_0_8px_rgba(14,165,233,0.5)]') : 'bg-slate-800';
-                        return '<div class="w-4 h-4 rounded-sm flex-shrink-0 ' + dotColor + '" title="' + dateStr + (didAttend ? (isSub ? ' - Sub' : ' - Started') : '') + '"></div>';
-                    }).join('')}
+            const satTime = new Date(dateStr).getTime();
+            let didAttend = false;
+            let isSub = false;
+            if (p.attendedDates) {
+                const match = p.attendedDates.find(ad => {
+                    const t = new Date(ad.date || ad).getTime();
+                    return Math.abs(t - satTime) <= 3 * 24 * 60 * 60 * 1000;
+                });
+                if (match) {
+                    didAttend = true;
+                    isSub = match.role === 'sub';
+                }
+            }
+            const dotColor = didAttend ? (isSub ? 'bg-secondary/40 shadow-[0_0_8px_rgba(14,165,233,0.3)]' : 'bg-secondary shadow-[0_0_8px_rgba(14,165,233,0.5)]') : 'bg-slate-800';
+            return '<div class="w-4 h-4 rounded-sm flex-shrink-0 ' + dotColor + '" title="' + dateStr + (didAttend ? (isSub ? ' - Sub' : ' - Started') : '') + '"></div>';
+        }).join('')}
                 </div>
             </div>`;
     });
@@ -780,7 +780,7 @@ window.openPlayerTrackerModal = function(playerId) {
         document.body.appendChild(overlay);
     }
     overlay.classList.remove('hidden');
-    
+
     overlay.innerHTML = `
         <div id="session-modal-content" class="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[95vh] overflow-y-auto rounded-[2rem] p-6 md:p-10 shadow-2xl animate-in fade-in zoom-in duration-300">
             <div class="flex justify-between items-center mb-8">
