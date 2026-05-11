@@ -244,9 +244,9 @@ const State = {
                             <div class="text-4xl sm:text-6xl font-black">${t2.score}</div>
                         </div>
                     </div>
-                    <div class="mt-8 flex justify-center">
+                    <div class="mt-8 flex justify-center gap-4">
                         <button onclick="State.toggleHeroExpand()" class="text-xs font-bold text-slate-500 hover:text-primary transition-colors flex items-center gap-2 uppercase tracking-widest bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700">
-                            ${this.isHeroExpanded ? 'Hide Lineups' : 'View Full Lineups'}
+                            ${this.isHeroExpanded ? 'Hide Details' : 'View Lineups'}
                             <svg class="w-4 h-4 transform ${this.isHeroExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </button>
                     </div>
@@ -278,8 +278,9 @@ const State = {
             }
 
             return `
-                <div class="flex items-center gap-2 ${team.name.toLowerCase().includes('blue') ? '' : 'flex-row-reverse'}">
+                <div class="flex items-center gap-2 ${team.name.toLowerCase().includes('blue') || team.name.toLowerCase().includes('team 2') ? 'flex-row-reverse' : ''}">
                     <div class="px-2 py-1 rounded text-[10px] font-bold uppercase transition-all flex items-center gap-1 ${highlights || 'text-slate-500'} ${isSub ? 'opacity-75' : ''}">
+                        ${p.isCaptain ? '<span class="text-accent font-black mr-0.5" title="Captain">Ⓒ</span>' : ''}
                         ${p.name}
                         ${isSub ? '<span class="text-xs" title="Substitute">🔄</span>' : ''}
                         ${p.goals > 0 ? `<span class="ml-1 opacity-80" title="Goals">⚽${p.goals}</span>` : ''}
@@ -295,7 +296,7 @@ const State = {
     },
 
     getTeamFlag(teamName) {
-        const color = teamName.toLowerCase().includes('orange') ? '#f97316' : teamName.toLowerCase().includes('blue') ? '#3b82f6' : '#94a3b8';
+        const color = teamName.toLowerCase().includes('orange') || teamName.toLowerCase().includes('team 1') ? '#f97316' : teamName.toLowerCase().includes('blue') || teamName.toLowerCase().includes('team 2') ? '#3b82f6' : '#94a3b8';
         return `<svg class="w-5 h-5" viewBox="0 0 24 24" fill="${color}"><path d="M5 21v-19h14l-2 5 2 5h-12v9h-2z"/></svg>`;
     },
 
@@ -575,7 +576,7 @@ window.renderSessionModal = function () {
             </div>
             ` : ''}
 
-            ${!isMatch ? `<div class="mb-8 space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">${isTraining ? 'Training Lead Coach' : 'Match Coordinator / Coach'}</label><input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors"></div>` : ''}
+            ${!isMatch && !isInHouse ? `<div class="mb-8 space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Training Lead Coach</label><input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors"></div>` : ''}
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 ${isMatch ? `
@@ -626,6 +627,10 @@ function renderTeamDraft(teamIndex, defaultName, label) {
                      <span class="block text-[10px] font-bold text-slate-500 uppercase mb-1">${label || 'Team Name'}</span>
                      <input type="text" value="${team.name}" onchange="currentDraft.teams[${teamIndex}].name=this.value" class="w-full bg-transparent text-lg font-bold text-white border-b border-transparent focus:border-primary outline-none" placeholder="Team Name">
                 </div>
+                <div class="flex-1">
+                      <span class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Coach</span>
+                      <input type="text" value="${team.coach || ''}" onchange="currentDraft.teams[${teamIndex}].coach=this.value" class="w-full bg-transparent text-xs font-bold text-slate-300 border-b border-transparent focus:border-primary outline-none" placeholder="Coach Name">
+                </div>
                 <div>
                     <span class="block text-[10px] font-bold text-slate-500 uppercase mb-1 text-center">Score</span>
                     <input type="number" value="${team.score}" ${isAutoScore ? 'readonly' : 'onchange="currentDraft.teams[${teamIndex}].score=parseInt(this.value)"'} class="w-16 bg-slate-800 p-2 rounded-lg text-center font-black text-lg border border-slate-700 focus:border-primary outline-none ${isAutoScore ? 'opacity-75 cursor-not-allowed' : ''}">
@@ -658,6 +663,11 @@ function renderTeamDraft(teamIndex, defaultName, label) {
                                 <option value="starter" ${p.role === 'starter' ? 'selected' : ''}>Start</option>
                                 <option value="sub" ${p.role === 'sub' ? 'selected' : ''}>Sub</option>
                             </select>
+
+                            <!-- Captain -->
+                            <button onclick="toggleCaptain(${teamIndex}, ${idx})" class="w-6 h-6 rounded flex items-center justify-center border ${p.isCaptain ? 'bg-accent border-accent text-white' : 'border-slate-800 text-slate-500 hover:border-accent'} transition-all" title="Set as Captain">
+                                <span class="text-[10px] font-black">C</span>
+                            </button>
 
                             <!-- Goals -->
                             <div class="flex items-center bg-slate-900 rounded border border-slate-700">
@@ -717,10 +727,30 @@ function renderOpponentDraft(teamIndex) {
 }
 
 window.addPlayerToTeam = function (teamIndex) {
-    const name = document.getElementById(`player-select-${teamIndex}`).value;
+    const select = document.getElementById(`player-select-${teamIndex}`);
+    const name = select.value;
     if (!name || currentDraft.teams[teamIndex].players.find(p => p.name === name)) { alert("Player invalid or already added"); return; }
-    currentDraft.teams[teamIndex].players.push({ name, goals: 0, assists: 0, yellow: 0, red: 0, ownGoals: 0, role: 'starter' });
+    
+    const playerInfo = State.players.find(p => p.name === name);
+    currentDraft.teams[teamIndex].players.push({ 
+        name, 
+        position: playerInfo ? playerInfo.position : 'Midfielder',
+        goals: 0, 
+        assists: 0, 
+        yellow: 0, 
+        red: 0, 
+        ownGoals: 0, 
+        role: 'starter',
+        isCaptain: false
+    });
     calculateTeamScores();
+    renderSessionModal();
+}
+window.toggleCaptain = function (teamIndex, playerIndex) {
+    const players = currentDraft.teams[teamIndex].players;
+    const currentState = !!players[playerIndex].isCaptain;
+    players.forEach(p => p.isCaptain = false);
+    players[playerIndex].isCaptain = !currentState;
     renderSessionModal();
 }
 window.removePlayerFromTeam = function (teamIndex, idx) {

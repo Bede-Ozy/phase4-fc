@@ -23,8 +23,9 @@ const Analytics = {
                 subs: 0,
                 cleanSheets: 0,
                 attendancePoints: 0,
+                captainBonus: 0,
                 attendedDates: [],
-                breakdown: { attendance: 0, goals: 0, assists: 0, cleanSheets: 0, deductions: 0 }
+                breakdown: { attendance: 0, goals: 0, assists: 0, cleanSheets: 0, deductions: 0, captainBonus: 0 }
             };
         });
 
@@ -107,6 +108,16 @@ const Analytics = {
                         let deductions = (yellow * 2) + (red * 4);
                         sessionPoints -= deductions;
                         stats[name].breakdown.deductions -= deductions;
+
+                        // Captain Win Bonus
+                        if (playerData.isCaptain) {
+                            const opponent = session.teams.find(t => t.name !== team.name);
+                            if (opponent && team.score > opponent.score) {
+                                sessionPoints += 1;
+                                stats[name].captainBonus += 1;
+                                stats[name].breakdown.captainBonus += 1;
+                            }
+                        }
 
                         stats[name].totalPoints += sessionPoints;
                     }
