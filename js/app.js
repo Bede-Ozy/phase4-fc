@@ -160,10 +160,10 @@ const State = {
                                         <span class="text-[9px] text-slate-500 font-bold uppercase">${new Date(s.date).getFullYear()}</span>
                                     </div>
                                 </div>
-                                <span class="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-black rounded uppercase tracking-widest border border-primary/20">${s.type}</span>
+                                <span class="px-2 py-0.5 bg-primary/10 text-primary text-[9px] font-black rounded uppercase tracking-widest border border-primary/20">${s.type === 'inhouse' ? 'in-house' : s.type}</span>
                                 ${s.type === 'match' ? `<span class="px-2 py-0.5 bg-secondary/10 text-secondary text-[9px] font-black rounded uppercase tracking-widest border border-secondary/20">${s.location || 'home'}</span>` : ''}
                             </div>
-                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight text-right">Coach: ${s.type === 'training' ? (s.coach || '--') : (s.teams[0].coach || '--')}</div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-tight text-right">Coach: ${(s.type === 'training' || s.type === 'inhouse') ? (s.coach || '--') : (s.teams[0].coach || '--')}</div>
                         </div>
 
                         <!-- Teams and Score aligned horizontally -->
@@ -216,7 +216,7 @@ const State = {
                     <div class="flex items-center justify-between mb-8">
                         <div class="text-left">
                             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mb-1">${new Date(latest.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
-                            <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded uppercase tracking-widest border border-primary/20">${latest.type}</span>
+                            <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-black rounded uppercase tracking-widest border border-primary/20">${latest.type === 'inhouse' ? 'in-house match' : latest.type}</span>
                             ${latest.type === 'match' ? `<span class="ml-2 px-2 py-0.5 bg-secondary/10 text-secondary text-[10px] font-black rounded uppercase tracking-widest border border-secondary/20">${latest.location || 'home'}</span>` : ''}
                         </div>
                         <div class="text-[10px] text-slate-600 font-black uppercase tracking-tighter">Latest Session</div>
@@ -327,7 +327,7 @@ const State = {
                     <div class="flex items-center gap-2">
                         <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                         <span class="w-1.5 h-[1px] bg-slate-700"></span>
-                        <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type}</div>
+                        <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type === 'inhouse' ? 'in-house match' : s.type}</div>
                         ${s.type === 'match' ? `<span class="w-1.5 h-[1px] bg-slate-700"></span><div class="text-[9px] font-black text-secondary uppercase tracking-widest">${s.location || 'home'}</div>` : ''}
                     </div>
                 </div>
@@ -428,7 +428,7 @@ const State = {
                     <div class="flex items-center gap-2">
                         <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest">${new Date(s.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                         <span class="w-1.5 h-[1px] bg-slate-700"></span>
-                        <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type}</div>
+                        <div class="text-[9px] font-black text-primary uppercase tracking-widest">${s.type === 'inhouse' ? 'in-house' : s.type}</div>
                         ${s.type === 'match' ? `<span class="w-1.5 h-[1px] bg-slate-700"></span><div class="text-[9px] font-black text-secondary uppercase tracking-widest">${s.location || 'home'}</div>` : ''}
                     </div>
                     <div class="flex items-center gap-1">
@@ -521,9 +521,9 @@ window.openNewSessionModal = async function () {
 
 window.switchSessionType = function (type) {
     currentDraft.type = type;
-    if (type === 'training') {
-        currentDraft.teams[0].name = 'Orange';
-        currentDraft.teams[1].name = 'Blue';
+    if (type === 'training' || type === 'inhouse') {
+        currentDraft.teams[0].name = type === 'training' ? 'Orange' : 'Team A';
+        currentDraft.teams[1].name = type === 'training' ? 'Blue' : 'Team B';
         delete currentDraft.location;
     } else {
         currentDraft.teams[0].name = 'Phase 4 FC';
@@ -543,6 +543,8 @@ window.renderSessionModal = function () {
     if (!currentDraft.teams[1]) currentDraft.teams[1] = { name: 'Opponent', score: 0, players: [] };
 
     const isMatch = currentDraft.type === 'match';
+    const isInHouse = currentDraft.type === 'inhouse';
+    const isTraining = currentDraft.type === 'training';
 
     overlay.innerHTML = `
         <div id="session-modal-content" class="bg-slate-900 border border-slate-700 w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-[2rem] p-6 md:p-10 shadow-2xl ${isUpdate ? '' : 'animate-in fade-in zoom-in duration-300'}">
@@ -553,6 +555,7 @@ window.renderSessionModal = function () {
                     <label class="block text-xs font-bold text-slate-500 uppercase">Session Type</label>
                     <div class="flex gap-2">
                         <button onclick="switchSessionType('match')" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'match' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">MATCH</button>
+                        <button onclick="switchSessionType('inhouse')" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'inhouse' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">IN-HOUSE</button>
                         <button onclick="switchSessionType('training')" class="flex-1 py-3 rounded-xl border-2 ${currentDraft.type === 'training' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-800 text-slate-500'} font-bold">TRAINING</button>
                     </div>
                 </div>
@@ -572,15 +575,15 @@ window.renderSessionModal = function () {
             </div>
             ` : ''}
 
-            ${!isMatch ? `<div class="mb-8 space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">Training Lead Coach</label><input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors"></div>` : ''}
+            ${!isMatch ? `<div class="mb-8 space-y-4"><label class="block text-xs font-bold text-slate-500 uppercase tracking-widest">${isTraining ? 'Training Lead Coach' : 'Match Coordinator / Coach'}</label><input type="text" placeholder="Enter Coach Name" value="${currentDraft.coach}" onchange="currentDraft.coach=this.value" class="w-full bg-slate-800 border-2 border-slate-700 rounded-xl p-3 text-white font-bold focus:border-primary outline-none transition-colors"></div>` : ''}
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 ${isMatch ? `
                     ${renderTeamDraft(0, 'Phase 4 FC', 'Our Team')}
                     ${renderOpponentDraft(1)}
                 ` : `
-                    ${renderTeamDraft(0, 'Orange', 'Team 1 (Orange)')}
-                    ${renderTeamDraft(1, 'Blue', 'Team 2 (Blue)')}
+                    ${renderTeamDraft(0, currentDraft.teams[0].name, isInHouse ? 'Team 1' : 'Team 1 (Orange)')}
+                    ${renderTeamDraft(1, currentDraft.teams[1].name, isInHouse ? 'Team 2' : 'Team 2 (Blue)')}
                 `}
             </div>
 
@@ -597,7 +600,7 @@ window.calculateTeamScores = function () {
     currentDraft.teams[0].score = team0Goals + team1OwnGoals;
 
     // Team 1 Score (Only if it has players, i.e., Training or internal match)
-    if (currentDraft.type === 'training' || (currentDraft.teams[1].players && currentDraft.teams[1].players.length > 0)) {
+    if (currentDraft.type === 'training' || currentDraft.type === 'inhouse' || (currentDraft.teams[1].players && currentDraft.teams[1].players.length > 0)) {
         const team1Goals = currentDraft.teams[1].players.reduce((sum, p) => sum + (p.goals || 0), 0);
         const team0OwnGoals = currentDraft.teams[0].players.reduce((sum, p) => sum + (p.ownGoals || 0), 0);
         currentDraft.teams[1].score = team1Goals + team0OwnGoals;
@@ -614,7 +617,7 @@ window.updatePlayerStat = function (ti, pi, s, v) {
 function renderTeamDraft(teamIndex, defaultName, label) {
     const team = currentDraft.teams[teamIndex];
     if (!team.name && defaultName) currentDraft.teams[teamIndex].name = defaultName;
-    const isAutoScore = currentDraft.type === 'training' || teamIndex === 0;
+    const isAutoScore = currentDraft.type === 'training' || currentDraft.type === 'inhouse' || teamIndex === 0;
 
     return `
         <div class="glass-card p-4 rounded-xl border border-slate-700 h-full">
