@@ -662,6 +662,7 @@ function renderTeamDraft(teamIndex, defaultName, label) {
                             <select onchange="updatePlayerStat(${teamIndex}, ${idx}, 'role', this.value)" class="bg-slate-900 text-[9px] p-1 rounded border border-slate-700 text-slate-400 outline-none uppercase font-bold w-12">
                                 <option value="starter" ${p.role === 'starter' ? 'selected' : ''}>Start</option>
                                 <option value="sub" ${p.role === 'sub' ? 'selected' : ''}>Sub</option>
+                                <option value="swap" ${p.role === 'swap' ? 'selected' : ''}>Swap</option>
                             </select>
 
                             <!-- Captain -->

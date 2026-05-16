@@ -71,8 +71,8 @@
                 <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Appearance</h3>
                 <div class="text-2xl font-black text-primary">+1 <span
                         class="text-xs text-slate-500 font-bold">pt</span></div>
-                <div class="text-[10px] text-slate-500 font-bold uppercase mt-0">+0.5 for Subs</div>
-                <p class="text-xs text-slate-500 mt-2">Awarded for playing. Starters get full points, subs get half.</p>
+                <div class="text-[10px] text-slate-500 font-bold uppercase mt-0">+0.5 for Subs / Swaps</div>
+                <p class="text-xs text-slate-500 mt-2">Awarded for playing. Starters get full points. Subs/Swaps receive points based on their initial entry.</p>
             </div>
             <div
                 class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center border-t-4 border-emerald-500">
@@ -99,12 +99,21 @@
                 <p class="text-xs text-slate-500 mt-2">Major deduction for being sent off.</p>
             </div>
             <div
+                class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center border-t-4 border-red-400">
+                <div class="text-3xl mb-2">⚠️</div>
+                <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Own Goal</h3>
+                <div class="text-2xl font-black text-red-400">-1 <span
+                        class="text-xs text-slate-500 font-bold">pt</span></div>
+                <p class="text-xs text-slate-500 mt-2">Flat deduction for scoring one or more own goals during a session.</p>
+            </div>
+            <div
                 class="glass-card p-6 rounded-2xl flex flex-col items-center justify-center text-center border-t-4 border-accent">
-                <div class="text-3xl mb-2">Ⓒ</div>
-                <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Captain Bonus</h3>
+                <div class="text-3xl mb-2">🏆</div>
+                <h3 class="font-bold text-white uppercase tracking-wider text-sm mb-1">Win Bonus</h3>
                 <div class="text-2xl font-black text-accent">+1 <span
                         class="text-xs text-slate-500 font-bold">pt</span></div>
-                <p class="text-xs text-slate-500 mt-2">Awarded to the team captain if they win the match/training.</p>
+                <p class="text-[10px] text-slate-500 font-bold uppercase mt-0">+1 Extra for Captain</p>
+                <p class="text-xs text-slate-500 mt-2">Awarded to all players on the winning team at the end of the session.</p>
             </div>
         </div>
 
@@ -166,9 +175,9 @@
                             class="text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1">Example</span>
                         <p class="text-sm text-slate-300">
                             <span class="font-bold text-white">Dums (Defender)</span> plays, keeps a clean sheet, scores
-                            1 goal.<br>
-                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 3 (Clean Sheet) + 3 (Goal) =
-                                <span class="text-white font-bold">7 Total Points</span></span>
+                            1 goal, and his team wins.<br>
+                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 3 (Clean Sheet) + 3 (Goal) + 1 (Win Bonus) =
+                                <span class="text-white font-bold">8 Total Points</span></span>
                         </p>
                     </div>
                 </div>
@@ -216,9 +225,9 @@
                             class="text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1">Example</span>
                         <p class="text-sm text-slate-300">
                             <span class="font-bold text-white">Biggy (Midfielder)</span> has an amazing game with 1
-                            goal and 2 assists.<br>
-                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 2 (Goal) + 4 (2 Assists) =
-                                <span class="text-white font-bold">7 Total Points</span></span>
+                            goal and 2 assists in a win.<br>
+                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 2 (Goal) + 4 (2 Assists) + 1 (Win Bonus) =
+                                <span class="text-white font-bold">8 Total Points</span></span>
                         </p>
                     </div>
                 </div>
@@ -265,9 +274,9 @@
                         <span
                             class="text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded text-[10px] font-bold uppercase mt-1">Example</span>
                         <p class="text-sm text-slate-300">
-                            <span class="font-bold text-white">Drogba (Forward)</span> scores 2 goals in a match.<br>
-                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 4 (2 Goals) = <span
-                                    class="text-white font-bold">5 Total Points</span></span>
+                            <span class="font-bold text-white">Drogba (Forward)</span> scores 2 goals in a winning match.<br>
+                            <span class="text-slate-500 text-xs">Determined as: 1 (App) + 4 (2 Goals) + 1 (Win Bonus) = <span
+                                    class="text-white font-bold">6 Total Points</span></span>
                         </p>
                     </div>
                 </div>

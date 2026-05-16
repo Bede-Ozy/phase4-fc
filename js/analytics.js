@@ -25,7 +25,7 @@ const Analytics = {
                 attendancePoints: 0,
                 captainBonus: 0,
                 attendedDates: [],
-                breakdown: { attendance: 0, goals: 0, assists: 0, cleanSheets: 0, deductions: 0, captainBonus: 0 }
+                breakdown: { attendance: 0, goals: 0, assists: 0, cleanSheets: 0, deductions: 0, captainBonus: 0, winBonus: 0 }
             };
         });
 
@@ -45,15 +45,17 @@ const Analytics = {
 
                         let sessionPoints = 0;
 
-                        // Appearance Points (Starter vs Sub)
+                        // Appearance Points (Starter vs Sub vs Swap)
                         const role = playerData.role || 'starter';
                         let weight = 0;
-                        if (role === 'sub') {
-                            weight = 0.5;
-                            stats[name].subs += 1;
-                        } else {
+                        if (role === 'starter') {
                             weight = 1.0;
                             stats[name].starts += 1;
+                        } else if (role === 'sub') {
+                            weight = 0.5;
+                            stats[name].subs += 1;
+                        } else if (role === 'swap') {
+                            weight = 0; // Already got points from start/sub entry
                         }
 
                         stats[name].attendancePoints += weight;
@@ -104,15 +106,26 @@ const Analytics = {
                         sessionPoints += cs;
                         stats[name].breakdown.cleanSheets += cs;
 
-                        // Card deductions
-                        let deductions = (yellow * 2) + (red * 4);
+                        // Card & Own Goal deductions
+                        // Deduction for own goals is -1 regardless of the count
+                        let deductions = (yellow * 2) + (red * 4) + ((playerData.ownGoals || 0) > 0 ? 1 : 0);
                         sessionPoints -= deductions;
                         stats[name].breakdown.deductions -= deductions;
 
-                        // Captain Win Bonus
+                        // Win Bonus (+1 for all players on the winning team)
+                        // A player only gets this bonus for the team they FINISHED with.
+                        const otherTeam = session.teams.find(t => t.name !== team.name);
+                        const hasSwappedOut = otherTeam && otherTeam.players.some(p => p.name === name && p.role === 'swap');
+                        const isFinalTeam = role === 'swap' || !hasSwappedOut;
+
+                        if (isFinalTeam && otherTeam && team.score > otherTeam.score) {
+                            sessionPoints += 1;
+                            stats[name].breakdown.winBonus += 1;
+                        }
+
+                        // Captain Win Bonus (Extra +1)
                         if (playerData.isCaptain) {
-                            const opponent = session.teams.find(t => t.name !== team.name);
-                            if (opponent && team.score > opponent.score) {
+                            if (otherTeam && team.score > otherTeam.score) {
                                 sessionPoints += 1;
                                 stats[name].captainBonus += 1;
                                 stats[name].breakdown.captainBonus += 1;
